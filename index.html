@@ -1,1414 +1,1691 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Darkranks · Wake‑Word AI</title>
-  <style>
-    * {
-      margin: 0;
-      padding: 0;
-      box-sizing: border-box;
-    }
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Darkranks · AI Voice Controller</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: #0b0e1a;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 16px;
+        }
+        .assistant-container {
+            width: 100%;
+            max-width: 860px;
+            background: rgba(18, 26, 45, 0.85);
+            backdrop-filter: blur(28px);
+            border-radius: 44px;
+            padding: 28px 24px 24px;
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            box-shadow: 0 40px 100px rgba(0, 0, 0, 0.8);
+        }
+        .assistant-container.listening {
+            box-shadow: 0 40px 100px rgba(0, 0, 0, 0.8), 0 0 0 2px rgba(99, 140, 255, 0.25);
+        }
+        .assistant-container.wake-active {
+            box-shadow: 0 40px 100px rgba(0, 0, 0, 0.8), 0 0 0 2px rgba(167, 139, 250, 0.3);
+        }
 
-    body {
-      font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
-      background: #0b0e1a;
-      min-height: 100vh;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      padding: 16px;
-    }
+        .header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 14px;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+        .header h1 {
+            color: #fff;
+            font-weight: 600;
+            font-size: 20px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .header h1 span {
+            background: linear-gradient(135deg, #a78bfa, #638cff);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
 
-    .assistant-container {
-      width: 100%;
-      max-width: 820px;
-      background: rgba(18, 26, 45, 0.85);
-      backdrop-filter: blur(28px);
-      -webkit-backdrop-filter: blur(28px);
-      border-radius: 44px;
-      padding: 28px 24px 24px;
-      border: 1px solid rgba(255, 255, 255, 0.05);
-      box-shadow: 0 40px 100px rgba(0, 0, 0, 0.8);
-      transition: box-shadow 0.3s ease;
-    }
+        .status-badge {
+            font-size: 11px;
+            font-weight: 600;
+            padding: 5px 14px;
+            border-radius: 100px;
+            background: rgba(255, 255, 255, 0.05);
+            color: rgba(255, 255, 255, 0.35);
+            border: 1px solid rgba(255, 255, 255, 0.04);
+            text-transform: uppercase;
+            letter-spacing: 0.6px;
+            white-space: nowrap;
+            transition: all 0.3s;
+        }
+        .status-badge.active {
+            background: rgba(99, 140, 255, 0.18);
+            color: #8ab4ff;
+            border-color: rgba(99, 140, 255, 0.25);
+            animation: pulse 1.8s infinite;
+        }
+        .status-badge.wake {
+            background: rgba(167, 139, 250, 0.2);
+            color: #c4b5fd;
+            border-color: rgba(167, 139, 250, 0.25);
+        }
+        .status-badge.success {
+            background: rgba(52, 211, 153, 0.15);
+            color: #34d399;
+            border-color: rgba(52, 211, 153, 0.2);
+        }
+        .status-badge.error {
+            background: rgba(255, 107, 107, 0.15);
+            color: #ff6b6b;
+            border-color: rgba(255, 107, 107, 0.2);
+        }
+        @keyframes pulse {
+            0%,
+            100% {
+                opacity: 1;
+            }
+            50% {
+                opacity: 0.4;
+            }
+        }
 
-    .assistant-container.listening {
-      box-shadow: 0 40px 100px rgba(0, 0, 0, 0.8), 0 0 0 2px rgba(99, 140, 255, 0.25);
-    }
+        /* Mode & language row */
+        .controls-row {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            gap: 12px 16px;
+            margin-bottom: 12px;
+            justify-content: center;
+        }
+        .mode-toggle {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .mode-toggle label {
+            font-size: 12px;
+            font-weight: 500;
+            color: rgba(255, 255, 255, 0.4);
+            cursor: pointer;
+            user-select: none;
+            transition: color 0.2s;
+        }
+        .mode-toggle label.active {
+            color: rgba(255, 255, 255, 0.8);
+        }
+        .toggle-switch {
+            position: relative;
+            width: 44px;
+            height: 24px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 12px;
+            cursor: pointer;
+            transition: background 0.3s;
+            border: 1px solid rgba(255, 255, 255, 0.05);
+        }
+        .toggle-switch.active {
+            background: rgba(99, 140, 255, 0.4);
+            border-color: rgba(99, 140, 255, 0.3);
+        }
+        .toggle-switch .knob {
+            position: absolute;
+            top: 2px;
+            left: 2px;
+            width: 18px;
+            height: 18px;
+            background: #fff;
+            border-radius: 50%;
+            transition: transform 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.4);
+        }
+        .toggle-switch.active .knob {
+            transform: translateX(20px);
+            background: #a78bfa;
+        }
 
-    .assistant-container.wake-active {
-      box-shadow: 0 40px 100px rgba(0, 0, 0, 0.8), 0 0 0 2px rgba(167, 139, 250, 0.3);
-    }
+        .lang-selector {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        .lang-selector label {
+            font-size: 12px;
+            color: rgba(255, 255, 255, 0.3);
+        }
+        .lang-selector select {
+            background: rgba(255, 255, 255, 0.06);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            color: #fff;
+            padding: 4px 10px;
+            border-radius: 8px;
+            font-size: 12px;
+            cursor: pointer;
+            outline: none;
+        }
+        .lang-selector select:focus {
+            border-color: rgba(167, 139, 250, 0.4);
+        }
 
-    /* --- HEADER --- */
-    .header {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      margin-bottom: 14px;
-      flex-wrap: wrap;
-      gap: 8px;
-    }
+        /* Chat */
+        .chat-log {
+            background: rgba(0, 0, 0, 0.25);
+            border-radius: 20px;
+            padding: 14px 12px;
+            min-height: 150px;
+            max-height: 200px;
+            overflow-y: auto;
+            margin-bottom: 12px;
+            border: 1px solid rgba(255, 255, 255, 0.03);
+            scroll-behavior: smooth;
+        }
+        .chat-log::-webkit-scrollbar {
+            width: 4px;
+        }
+        .chat-log::-webkit-scrollbar-thumb {
+            background: rgba(255, 255, 255, 0.12);
+            border-radius: 12px;
+        }
+        .chat-message {
+            display: flex;
+            flex-direction: column;
+            margin-bottom: 10px;
+            animation: fadeIn 0.25s both;
+        }
+        .chat-message:last-child {
+            margin-bottom: 0;
+        }
+        .chat-message.user {
+            align-items: flex-end;
+        }
+        .chat-message.assistant {
+            align-items: flex-start;
+        }
+        .bubble {
+            max-width: 88%;
+            padding: 8px 14px;
+            border-radius: 18px;
+            font-size: 14px;
+            line-height: 1.5;
+            word-break: break-word;
+            color: rgba(255, 255, 255, 0.9);
+        }
+        .chat-message.user .bubble {
+            background: linear-gradient(135deg, #2a3b6b, #1f2a4a);
+            border-bottom-right-radius: 5px;
+            border: 1px solid rgba(255, 255, 255, 0.05);
+        }
+        .chat-message.assistant .bubble {
+            background: rgba(255, 255, 255, 0.06);
+            border-bottom-left-radius: 5px;
+            border: 1px solid rgba(255, 255, 255, 0.04);
+            color: rgba(255, 255, 255, 0.85);
+        }
+        .chat-message .time {
+            font-size: 8px;
+            color: rgba(255, 255, 255, 0.12);
+            margin: 3px 10px 0;
+            letter-spacing: 0.3px;
+        }
+        .chat-message.user .time {
+            text-align: right;
+        }
+        .empty-chat {
+            color: rgba(255, 255, 255, 0.12);
+            font-style: italic;
+            text-align: center;
+            padding: 16px 0;
+            font-size: 13px;
+        }
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
 
-    .header h1 {
-      color: #fff;
-      font-weight: 600;
-      font-size: 20px;
-      letter-spacing: -0.3px;
-      display: flex;
-      align-items: center;
-      gap: 8px;
-    }
+        /* JSON panel */
+        .command-panel {
+            background: rgba(0, 0, 0, 0.4);
+            border-radius: 16px;
+            padding: 10px 16px;
+            margin-bottom: 14px;
+            border: 1px solid rgba(255, 255, 255, 0.04);
+        }
+        .command-panel .label {
+            font-size: 10px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.8px;
+            color: rgba(255, 255, 255, 0.15);
+            margin-bottom: 4px;
+        }
+        .command-panel .json-output {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 13px;
+            color: rgba(255, 255, 255, 0.7);
+            white-space: pre-wrap;
+            word-break: break-word;
+            line-height: 1.6;
+            min-height: 28px;
+            max-height: 100px;
+            overflow-y: auto;
+        }
+        .command-panel .json-output .empty {
+            color: rgba(255, 255, 255, 0.15);
+            font-style: italic;
+            font-family: Inter, sans-serif;
+        }
+        .command-panel .json-output .key {
+            color: #fbbf24;
+        }
+        .command-panel .json-output .string {
+            color: #34d399;
+        }
+        .command-panel .json-output .number {
+            color: #60a5fa;
+        }
 
-    .header h1 span {
-      background: linear-gradient(135deg, #a78bfa, #638cff);
-      -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent;
-      background-clip: text;
-    }
+        /* Mic */
+        .mic-wrapper {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 20px;
+            margin: 4px 0 14px;
+        }
+        .mic-btn {
+            width: 76px;
+            height: 76px;
+            border-radius: 50%;
+            border: none;
+            background: linear-gradient(135deg, #1a2340, #0f1628);
+            box-shadow: 0 12px 40px rgba(0, 0, 0, 0.6);
+            color: #fff;
+            font-size: 34px;
+            cursor: pointer;
+            transition: all 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border: 1px solid rgba(255, 255, 255, 0.06);
+        }
+        .mic-btn:hover {
+            transform: scale(1.04);
+        }
+        .mic-btn:active {
+            transform: scale(0.92);
+        }
+        .mic-btn.listening {
+            background: linear-gradient(135deg, #2a3b6b, #1a2340);
+            animation: mic-pulse 1.6s infinite;
+            border-color: rgba(99, 140, 255, 0.3);
+        }
+        .mic-btn.listening .mic-icon {
+            animation: bounce 0.9s infinite alternate;
+        }
+        .mic-btn.error {
+            background: linear-gradient(135deg, #5a1a1a, #3d0f0f);
+            border-color: rgba(255, 107, 107, 0.3);
+        }
+        @keyframes mic-pulse {
+            0% {
+                box-shadow: 0 0 0 0 rgba(99, 140, 255, 0.3);
+            }
+            70% {
+                box-shadow: 0 0 0 22px rgba(99, 140, 255, 0);
+            }
+            100% {
+                box-shadow: 0 0 0 0 rgba(99, 140, 255, 0);
+            }
+        }
+        @keyframes bounce {
+            0% {
+                transform: scale(1);
+            }
+            100% {
+                transform: scale(1.12);
+            }
+        }
+        .wake-indicator {
+            font-size: 13px;
+            color: rgba(255, 255, 255, 0.2);
+            letter-spacing: 0.3px;
+        }
+        .wake-indicator.active {
+            color: #a78bfa;
+        }
 
-    .status-badge {
-      font-size: 11px;
-      font-weight: 600;
-      padding: 5px 14px;
-      border-radius: 100px;
-      background: rgba(255, 255, 255, 0.05);
-      color: rgba(255, 255, 255, 0.35);
-      border: 1px solid rgba(255, 255, 255, 0.04);
-      transition: all 0.3s ease;
-      text-transform: uppercase;
-      letter-spacing: 0.6px;
-      white-space: nowrap;
-    }
+        /* Quick tips */
+        .quick-tips {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 6px;
+            justify-content: center;
+            margin-top: 2px;
+        }
+        .quick-tips span {
+            font-size: 10px;
+            padding: 3px 10px;
+            border-radius: 100px;
+            background: rgba(255, 255, 255, 0.03);
+            color: rgba(255, 255, 255, 0.18);
+            border: 1px solid rgba(255, 255, 255, 0.04);
+            user-select: none;
+            white-space: nowrap;
+        }
+        .quick-tips span:hover {
+            background: rgba(255, 255, 255, 0.06);
+            color: rgba(255, 255, 255, 0.4);
+        }
 
-    .status-badge.active {
-      background: rgba(99, 140, 255, 0.18);
-      color: #8ab4ff;
-      border-color: rgba(99, 140, 255, 0.25);
-      animation: pulse-badge 1.8s ease-in-out infinite;
-    }
+        /* Demo interactive elements */
+        .demo-area {
+            margin-top: 16px;
+            padding: 16px;
+            background: rgba(255, 255, 255, 0.03);
+            border-radius: 16px;
+            border: 1px dashed rgba(255, 255, 255, 0.06);
+        }
+        .demo-area h3 {
+            color: rgba(255, 255, 255, 0.3);
+            font-size: 12px;
+            font-weight: 500;
+            text-transform: uppercase;
+            letter-spacing: 0.6px;
+            margin-bottom: 10px;
+        }
+        .demo-area .row {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            align-items: center;
+        }
+        .demo-area button {
+            background: rgba(99, 140, 255, 0.15);
+            border: 1px solid rgba(99, 140, 255, 0.2);
+            color: #8ab4ff;
+            padding: 6px 16px;
+            border-radius: 20px;
+            font-size: 13px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .demo-area button:hover {
+            background: rgba(99, 140, 255, 0.25);
+        }
+        .demo-area input {
+            background: rgba(255, 255, 255, 0.06);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            color: #fff;
+            padding: 6px 12px;
+            border-radius: 12px;
+            font-size: 13px;
+            outline: none;
+            flex: 1;
+            min-width: 120px;
+        }
+        .demo-area input:focus {
+            border-color: rgba(167, 139, 250, 0.3);
+        }
+        .demo-area .section-marker {
+            color: rgba(255, 255, 255, 0.15);
+            font-size: 12px;
+            padding: 4px 0;
+        }
 
-    .status-badge.wake {
-      background: rgba(167, 139, 250, 0.2);
-      color: #c4b5fd;
-      border-color: rgba(167, 139, 250, 0.25);
-    }
-
-    .status-badge.success {
-      background: rgba(52, 211, 153, 0.15);
-      color: #34d399;
-      border-color: rgba(52, 211, 153, 0.2);
-    }
-
-    .status-badge.error {
-      background: rgba(255, 107, 107, 0.15);
-      color: #ff6b6b;
-      border-color: rgba(255, 107, 107, 0.2);
-    }
-
-    @keyframes pulse-badge {
-      0%,
-      100% {
-        opacity: 1;
-      }
-      50% {
-        opacity: 0.4;
-      }
-    }
-
-    /* --- MODE TOGGLE --- */
-    .mode-toggle {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      margin-bottom: 12px;
-      justify-content: center;
-    }
-
-    .mode-toggle label {
-      font-size: 12px;
-      font-weight: 500;
-      color: rgba(255, 255, 255, 0.4);
-      cursor: pointer;
-      user-select: none;
-      transition: color 0.2s;
-    }
-
-    .mode-toggle label.active {
-      color: rgba(255, 255, 255, 0.8);
-    }
-
-    .toggle-switch {
-      position: relative;
-      width: 44px;
-      height: 24px;
-      background: rgba(255, 255, 255, 0.1);
-      border-radius: 12px;
-      cursor: pointer;
-      transition: background 0.3s;
-      border: 1px solid rgba(255, 255, 255, 0.05);
-    }
-
-    .toggle-switch.active {
-      background: rgba(99, 140, 255, 0.4);
-      border-color: rgba(99, 140, 255, 0.3);
-    }
-
-    .toggle-switch .knob {
-      position: absolute;
-      top: 2px;
-      left: 2px;
-      width: 18px;
-      height: 18px;
-      background: #fff;
-      border-radius: 50%;
-      transition: transform 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
-      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.4);
-    }
-
-    .toggle-switch.active .knob {
-      transform: translateX(20px);
-      background: #a78bfa;
-    }
-
-    /* --- CHAT LOG --- */
-    .chat-log {
-      background: rgba(0, 0, 0, 0.25);
-      border-radius: 20px;
-      padding: 14px 12px;
-      min-height: 140px;
-      max-height: 200px;
-      overflow-y: auto;
-      margin-bottom: 12px;
-      border: 1px solid rgba(255, 255, 255, 0.03);
-      scroll-behavior: smooth;
-    }
-
-    .chat-log::-webkit-scrollbar {
-      width: 4px;
-    }
-    .chat-log::-webkit-scrollbar-thumb {
-      background: rgba(255, 255, 255, 0.12);
-      border-radius: 12px;
-    }
-
-    .chat-message {
-      display: flex;
-      flex-direction: column;
-      margin-bottom: 10px;
-      animation: fadeInUp 0.25s ease both;
-    }
-    .chat-message:last-child {
-      margin-bottom: 0;
-    }
-    .chat-message.user {
-      align-items: flex-end;
-    }
-    .chat-message.assistant {
-      align-items: flex-start;
-    }
-
-    .bubble {
-      max-width: 88%;
-      padding: 8px 14px;
-      border-radius: 18px;
-      font-size: 14px;
-      line-height: 1.5;
-      word-break: break-word;
-      color: rgba(255, 255, 255, 0.9);
-    }
-
-    .chat-message.user .bubble {
-      background: linear-gradient(135deg, #2a3b6b, #1f2a4a);
-      border-bottom-right-radius: 5px;
-      border: 1px solid rgba(255, 255, 255, 0.05);
-    }
-
-    .chat-message.assistant .bubble {
-      background: rgba(255, 255, 255, 0.06);
-      border-bottom-left-radius: 5px;
-      border: 1px solid rgba(255, 255, 255, 0.04);
-      color: rgba(255, 255, 255, 0.85);
-    }
-
-    .chat-message .time {
-      font-size: 8px;
-      color: rgba(255, 255, 255, 0.12);
-      margin: 3px 10px 0;
-      letter-spacing: 0.3px;
-    }
-    .chat-message.user .time {
-      text-align: right;
-    }
-
-    .empty-chat {
-      color: rgba(255, 255, 255, 0.12);
-      font-style: italic;
-      text-align: center;
-      padding: 16px 0;
-      font-size: 13px;
-    }
-
-    @keyframes fadeInUp {
-      from {
-        opacity: 0;
-        transform: translateY(10px);
-      }
-      to {
-        opacity: 1;
-        transform: translateY(0);
-      }
-    }
-
-    /* --- COMMAND JSON --- */
-    .command-panel {
-      background: rgba(0, 0, 0, 0.4);
-      border-radius: 16px;
-      padding: 10px 16px;
-      margin-bottom: 14px;
-      border: 1px solid rgba(255, 255, 255, 0.04);
-    }
-
-    .command-panel .label {
-      font-size: 10px;
-      font-weight: 600;
-      text-transform: uppercase;
-      letter-spacing: 0.8px;
-      color: rgba(255, 255, 255, 0.15);
-      margin-bottom: 4px;
-    }
-
-    .command-panel .json-output {
-      font-family: 'JetBrains Mono', 'Fira Code', monospace;
-      font-size: 13px;
-      color: rgba(255, 255, 255, 0.7);
-      white-space: pre-wrap;
-      word-break: break-word;
-      line-height: 1.6;
-      min-height: 28px;
-      max-height: 100px;
-      overflow-y: auto;
-      scrollbar-width: thin;
-    }
-
-    .command-panel .json-output::-webkit-scrollbar {
-      width: 3px;
-    }
-    .command-panel .json-output::-webkit-scrollbar-thumb {
-      background: rgba(255, 255, 255, 0.1);
-      border-radius: 8px;
-    }
-
-    .command-panel .json-output .empty {
-      color: rgba(255, 255, 255, 0.15);
-      font-style: italic;
-      font-family: Inter, sans-serif;
-    }
-
-    .command-panel .json-output .key {
-      color: #fbbf24;
-    }
-    .command-panel .json-output .string {
-      color: #34d399;
-    }
-    .command-panel .json-output .number {
-      color: #60a5fa;
-    }
-    .command-panel .json-output .boolean {
-      color: #c084fc;
-    }
-
-    /* --- MIC BUTTON --- */
-    .mic-wrapper {
-      display: flex;
-      justify-content: center;
-      margin: 4px 0 14px;
-      gap: 20px;
-      align-items: center;
-    }
-
-    .mic-btn {
-      width: 76px;
-      height: 76px;
-      border-radius: 50%;
-      border: none;
-      background: linear-gradient(135deg, #1a2340, #0f1628);
-      box-shadow: 0 12px 40px rgba(0, 0, 0, 0.6);
-      color: #fff;
-      font-size: 34px;
-      cursor: pointer;
-      transition: all 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      border: 1px solid rgba(255, 255, 255, 0.06);
-    }
-
-    .mic-btn:hover {
-      transform: scale(1.04);
-      background: linear-gradient(135deg, #1f2a4a, #141d32);
-    }
-    .mic-btn:active {
-      transform: scale(0.92);
-    }
-
-    .mic-btn.listening {
-      background: linear-gradient(135deg, #2a3b6b, #1a2340);
-      animation: mic-pulse 1.6s ease-in-out infinite;
-      border-color: rgba(99, 140, 255, 0.3);
-    }
-
-    .mic-btn.listening .mic-icon {
-      animation: mic-icon-bounce 0.9s ease-in-out infinite alternate;
-    }
-
-    .mic-btn.error {
-      background: linear-gradient(135deg, #5a1a1a, #3d0f0f);
-      border-color: rgba(255, 107, 107, 0.3);
-    }
-
-    @keyframes mic-pulse {
-      0% {
-        box-shadow: 0 0 0 0 rgba(99, 140, 255, 0.3);
-      }
-      70% {
-        box-shadow: 0 0 0 22px rgba(99, 140, 255, 0);
-      }
-      100% {
-        box-shadow: 0 0 0 0 rgba(99, 140, 255, 0);
-      }
-    }
-
-    @keyframes mic-icon-bounce {
-      0% {
-        transform: scale(1);
-      }
-      100% {
-        transform: scale(1.12);
-      }
-    }
-
-    .wake-indicator {
-      font-size: 13px;
-      color: rgba(255, 255, 255, 0.2);
-      letter-spacing: 0.3px;
-    }
-    .wake-indicator.active {
-      color: #a78bfa;
-    }
-
-    /* --- TIPS --- */
-    .quick-tips {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 6px;
-      justify-content: center;
-      margin-top: 2px;
-    }
-
-    .quick-tips span {
-      font-size: 10px;
-      padding: 3px 10px;
-      border-radius: 100px;
-      background: rgba(255, 255, 255, 0.03);
-      color: rgba(255, 255, 255, 0.18);
-      border: 1px solid rgba(255, 255, 255, 0.04);
-      user-select: none;
-      transition: all 0.2s;
-      white-space: nowrap;
-    }
-
-    .quick-tips span:hover {
-      background: rgba(255, 255, 255, 0.06);
-      color: rgba(255, 255, 255, 0.4);
-    }
-
-    @media (max-width: 600px) {
-      .assistant-container {
-        padding: 18px 12px 16px;
-        border-radius: 32px;
-      }
-      .mic-btn {
-        width: 64px;
-        height: 64px;
-        font-size: 28px;
-      }
-      .chat-log {
-        min-height: 100px;
-        max-height: 150px;
-        padding: 10px 8px;
-      }
-      .bubble {
-        font-size: 13px;
-        padding: 6px 12px;
-      }
-      .header h1 {
-        font-size: 17px;
-      }
-      .command-panel .json-output {
-        font-size: 12px;
-        max-height: 80px;
-      }
-      .command-panel {
-        padding: 8px 12px;
-      }
-    }
-
-    @media (max-width: 400px) {
-      .mic-btn {
-        width: 56px;
-        height: 56px;
-        font-size: 24px;
-      }
-      .bubble {
-        font-size: 12px;
-        padding: 5px 10px;
-      }
-      .quick-tips span {
-        font-size: 9px;
-        padding: 2px 8px;
-      }
-    }
-  </style>
+        @media (max-width: 600px) {
+            .assistant-container {
+                padding: 18px 12px 16px;
+                border-radius: 32px;
+            }
+            .mic-btn {
+                width: 64px;
+                height: 64px;
+                font-size: 28px;
+            }
+            .chat-log {
+                min-height: 100px;
+                max-height: 150px;
+                padding: 10px 8px;
+            }
+            .bubble {
+                font-size: 13px;
+                padding: 6px 12px;
+            }
+            .controls-row {
+                flex-direction: column;
+                align-items: stretch;
+            }
+            .mode-toggle {
+                justify-content: center;
+            }
+            .lang-selector {
+                justify-content: center;
+            }
+        }
+    </style>
 </head>
 <body>
 
-  <div class="assistant-container" id="appContainer">
-    <!-- HEADER -->
-    <div class="header">
-      <h1>🧠 <span>Darkranks</span> AI</h1>
-      <div class="status-badge" id="statusBadge">Standby</div>
+    <div class="assistant-container" id="appContainer">
+        <!-- HEADER -->
+        <div class="header">
+            <h1>🧠 <span>Darkranks</span> AI</h1>
+            <div class="status-badge" id="statusBadge">Standby</div>
+        </div>
+
+        <!-- CONTROLS: mode + language -->
+        <div class="controls-row">
+            <div class="mode-toggle">
+                <label id="modeLabelManual" class="active">🎙️ Push</label>
+                <div class="toggle-switch" id="modeToggle">
+                    <div class="knob"></div>
+                </div>
+                <label id="modeLabelWake">🔊 Wake</label>
+            </div>
+            <div class="lang-selector">
+                <label>🌐</label>
+                <select id="langSelect">
+                    <option value="en-US">English</option>
+                    <option value="es-ES">Español</option>
+                    <option value="fr-FR">Français</option>
+                    <option value="de-DE">Deutsch</option>
+                    <option value="hi-IN">हिन्दी</option>
+                </select>
+            </div>
+        </div>
+
+        <!-- CHAT -->
+        <div class="chat-log" id="chatLog">
+            <div class="empty-chat">✨ Say "Hey Darkranks" or tap the mic...</div>
+        </div>
+
+        <!-- JSON -->
+        <div class="command-panel">
+            <div class="label">📦 parsed command</div>
+            <div class="json-output" id="jsonOutput"><span class="empty">Waiting...</span></div>
+        </div>
+
+        <!-- MIC -->
+        <div class="mic-wrapper">
+            <button class="mic-btn" id="micBtn" aria-label="Toggle microphone">
+                <span class="mic-icon">🎤</span>
+            </button>
+            <span class="wake-indicator" id="wakeIndicator">🔇 idle</span>
+        </div>
+
+        <!-- TIPS -->
+        <div class="quick-tips">
+            <span>🔊 "Hey Darkranks, open YouTube"</span>
+            <span>🎵 "play Shape of You"</span>
+            <span>🔍 "what is the capital of France?"</span>
+            <span>🖱️ "click Submit"</span>
+            <span>⌨️ "type hello into name"</span>
+            <span>⬇️ "go to footer"</span>
+        </div>
+
+        <!-- DEMO interactive elements for testing website control -->
+        <div class="demo-area">
+            <h3>🧪 Try website control on these elements</h3>
+            <div class="row">
+                <button id="demoBtn">Click Me</button>
+                <input type="text" placeholder="Type here..." id="demoInput" />
+                <span class="section-marker" id="demoSection">📌 Section</span>
+            </div>
+        </div>
     </div>
 
-    <!-- MODE TOGGLE -->
-    <div class="mode-toggle">
-      <label id="modeLabelManual" class="active">🎙️ Push‑to‑talk</label>
-      <div class="toggle-switch" id="modeToggle">
-        <div class="knob"></div>
-      </div>
-      <label id="modeLabelWake">🔊 Wake‑word</label>
-    </div>
+    <script>
+        (function() {
+            'use strict';
 
-    <!-- CHAT LOG -->
-    <div class="chat-log" id="chatLog">
-      <div class="empty-chat">✨ Say "Hey Darkranks" or tap the mic...</div>
-    </div>
+            // ================================================================
+            //  DOM REFS
+            // ================================================================
+            const micBtn = document.getElementById('micBtn');
+            const statusBadge = document.getElementById('statusBadge');
+            const chatLog = document.getElementById('chatLog');
+            const jsonOutput = document.getElementById('jsonOutput');
+            const appContainer = document.getElementById('appContainer');
+            const modeToggle = document.getElementById('modeToggle');
+            const modeLabelManual = document.getElementById('modeLabelManual');
+            const modeLabelWake = document.getElementById('modeLabelWake');
+            const wakeIndicator = document.getElementById('wakeIndicator');
+            const langSelect = document.getElementById('langSelect');
 
-    <!-- COMMAND JSON -->
-    <div class="command-panel">
-      <div class="label">📦 parsed command (result)</div>
-      <div class="json-output" id="jsonOutput"><span class="empty">Waiting for your voice...</span></div>
-    </div>
+            // ================================================================
+            //  STATE
+            // ================================================================
+            let isListening = false;
+            let recognition = null;
+            let wakeMode = false;
+            let waitingForWake = true;
+            let commandBuffer = '';
+            let wakeDetected = false;
+            let currentLang = 'en-US';
+            let context = {
+                lastTarget: null,
+                lastQuery: null,
+                lastAction: null,
+                lastFullCommand: null,
+            };
 
-    <!-- MIC + WAKE INDICATOR -->
-    <div class="mic-wrapper">
-      <button class="mic-btn" id="micBtn" aria-label="Toggle microphone">
-        <span class="mic-icon">🎤</span>
-      </button>
-      <span class="wake-indicator" id="wakeIndicator">🔇 idle</span>
-    </div>
+            const WAKE_WORD = 'hey darkranks';
 
-    <!-- TIPS -->
-    <div class="quick-tips">
-      <span>🔊 "Hey Darkranks, open YouTube"</span>
-      <span>🎵 "Hey Darkranks, play Shape of You"</span>
-      <span>🔍 "Hey Darkranks, search AI news"</span>
-      <span>⏰ "Hey Darkranks, what time is it?"</span>
-      <span>🧮 "25 * 8"</span>
-    </div>
-  </div>
+            // ================================================================
+            //  LANGUAGE KEYWORD MAPS
+            // ================================================================
+            const LANG_KEYWORDS = {
+                'en-US': {
+                    open: ['open', 'go to', 'launch'],
+                    play: ['play', 'start', 'listen to'],
+                    search: ['search', 'find', 'look up', 'show me', 'what is', 'who is', 'where is'],
+                    scroll: ['scroll', 'move'],
+                    navigate: ['go', 'navigate'],
+                    click: ['click', 'tap', 'press'],
+                    type: ['type', 'enter', 'fill', 'put'],
+                    goto: ['go to', 'jump to', 'scroll to'],
+                    refresh: ['refresh', 'reload'],
+                    stop: ['stop', 'cancel', 'quit'],
+                    clear: ['clear', 'reset'],
+                    back: ['back', 'go back'],
+                    forward: ['forward', 'go forward'],
+                    home: ['home', 'top'],
+                },
+                'es-ES': {
+                    open: ['abrir', 'ir a', 'lanzar'],
+                    play: ['reproducir', 'poner', 'escuchar'],
+                    search: ['buscar', 'encontrar', 'consultar', 'qué es', 'quién es', 'dónde está'],
+                    scroll: ['desplazar', 'mover'],
+                    navigate: ['ir', 'navegar'],
+                    click: ['clic', 'pulsar', 'tocar'],
+                    type: ['escribir', 'ingresar', 'poner'],
+                    goto: ['ir a', 'saltar a', 'desplazarse a'],
+                    refresh: ['actualizar', 'recargar'],
+                    stop: ['parar', 'cancelar', 'salir'],
+                    clear: ['limpiar', 'reiniciar'],
+                    back: ['atrás', 'volver'],
+                    forward: ['adelante', 'avanzar'],
+                    home: ['inicio', 'arriba'],
+                },
+                'fr-FR': {
+                    open: ['ouvrir', 'aller à', 'lancer'],
+                    play: ['jouer', 'écouter', 'mettre'],
+                    search: ['chercher', 'trouver', 'rechercher', 'qu\'est-ce que', 'qui est', 'où est'],
+                    scroll: ['défiler', 'bouger'],
+                    navigate: ['aller', 'naviguer'],
+                    click: ['cliquer', 'appuyer', 'toucher'],
+                    type: ['taper', 'écrire', 'mettre'],
+                    goto: ['aller à', 'sauter à', 'défiler vers'],
+                    refresh: ['actualiser', 'recharger'],
+                    stop: ['arrêter', 'annuler', 'quitter'],
+                    clear: ['effacer', 'réinitialiser'],
+                    back: ['retour', 'reculer'],
+                    forward: ['avancer', 'aller en avant'],
+                    home: ['accueil', 'haut'],
+                },
+                'de-DE': {
+                    open: ['öffnen', 'gehe zu', 'starten'],
+                    play: ['abspielen', 'hören', 'starte'],
+                    search: ['suchen', 'finden', 'nachschlagen', 'was ist', 'wer ist', 'wo ist'],
+                    scroll: ['scrollen', 'bewegen'],
+                    navigate: ['gehe', 'navigiere'],
+                    click: ['klicke', 'tippe', 'drücke'],
+                    type: ['tippe', 'eingeben', 'füllen'],
+                    goto: ['gehe zu', 'springe zu', 'scrolle zu'],
+                    refresh: ['aktualisieren', 'neu laden'],
+                    stop: ['stopp', 'abbrechen', 'beenden'],
+                    clear: ['löschen', 'zurücksetzen'],
+                    back: ['zurück', 'gehe zurück'],
+                    forward: ['vorwärts', 'gehe vorwärts'],
+                    home: ['start', 'oben'],
+                },
+                'hi-IN': {
+                    open: ['खोलें', 'जाएं', 'लॉन्च करें'],
+                    play: ['चलाएं', 'शुरू करें', 'सुनें'],
+                    search: ['खोजें', 'ढूंढें', 'देखें', 'क्या है', 'कौन है', 'कहाँ है'],
+                    scroll: ['स्क्रॉल करें', 'घुमाएं'],
+                    navigate: ['जाएं', 'नेविगेट करें'],
+                    click: ['क्लिक करें', 'दबाएं', 'टैप करें'],
+                    type: ['टाइप करें', 'लिखें', 'भरें'],
+                    goto: ['जाएं', 'पर जाएं', 'स्क्रॉल करें'],
+                    refresh: ['रिफ्रेश करें', 'रीलोड करें'],
+                    stop: ['रोकें', 'रद्द करें', 'बंद करें'],
+                    clear: ['साफ़ करें', 'रीसेट करें'],
+                    back: ['पीछे', 'वापस जाएं'],
+                    forward: ['आगे', 'आगे जाएं'],
+                    home: ['होम', 'ऊपर'],
+                }
+            };
 
-  <script>
-    (function() {
-      'use strict';
-
-      // ================================================================
-      //  DOM REFS
-      // ================================================================
-      const micBtn = document.getElementById('micBtn');
-      const statusBadge = document.getElementById('statusBadge');
-      const chatLog = document.getElementById('chatLog');
-      const jsonOutput = document.getElementById('jsonOutput');
-      const appContainer = document.getElementById('appContainer');
-      const modeToggle = document.getElementById('modeToggle');
-      const modeLabelManual = document.getElementById('modeLabelManual');
-      const modeLabelWake = document.getElementById('modeLabelWake');
-      const wakeIndicator = document.getElementById('wakeIndicator');
-
-      // ================================================================
-      //  STATE
-      // ================================================================
-      let isListening = false;
-      let recognition = null;
-      let wakeMode = false; // false = push-to-talk, true = wake-word
-      let waitingForWake = true;
-      let commandBuffer = '';
-      let wakeDetected = false;
-      let lastFinalTranscript = '';
-      let context = {
-        lastTarget: null,
-        lastQuery: null,
-        lastAction: null,
-        lastFullCommand: null,
-      };
-
-      const WAKE_WORD = 'hey darkranks';
-
-      // ================================================================
-      //  UI HELPERS
-      // ================================================================
-      function addMessage(type, text) {
-        const empty = chatLog.querySelector('.empty-chat');
-        if (empty) empty.remove();
-
-        const wrapper = document.createElement('div');
-        wrapper.className = `chat-message ${type}`;
-
-        const bubble = document.createElement('div');
-        bubble.className = 'bubble';
-        bubble.textContent = text;
-
-        const time = document.createElement('div');
-        time.className = 'time';
-        time.textContent = new Date().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
-
-        wrapper.appendChild(bubble);
-        wrapper.appendChild(time);
-        chatLog.appendChild(wrapper);
-        chatLog.scrollTop = chatLog.scrollHeight;
-      }
-
-      function setStatus(label, type) {
-        statusBadge.textContent = label;
-        statusBadge.className = 'status-badge';
-        if (type) statusBadge.classList.add(type);
-      }
-
-      function updateCommandDisplay(command) {
-        if (!command || Object.keys(command).length === 0) {
-          jsonOutput.innerHTML = '<span class="empty">Waiting for your voice...</span>';
-          return;
-        }
-        const jsonStr = JSON.stringify(command, null, 2);
-        const highlighted = jsonStr
-          .replace(/"([^"]+)":/g, '<span class="key">"$1"</span>:')
-          .replace(/: "([^"]+)"/g, ': <span class="string">"$1"</span>')
-          .replace(/: (\d+\.?\d*)/g, ': <span class="number">$1</span>')
-          .replace(/: (true|false)/g, ': <span class="boolean">$1</span>');
-        jsonOutput.innerHTML = highlighted;
-      }
-
-      function updateWakeIndicator(text, isActive) {
-        wakeIndicator.textContent = text || '🔇 idle';
-        if (isActive) {
-          wakeIndicator.classList.add('active');
-        } else {
-          wakeIndicator.classList.remove('active');
-        }
-      }
-
-      // ================================================================
-      //  SPEECH SYNTHESIS
-      // ================================================================
-      function speak(text, rate = 0.92) {
-        if (!window.speechSynthesis) return;
-        window.speechSynthesis.cancel();
-        const utterance = new SpeechSynthesisUtterance(text);
-        utterance.rate = rate;
-        utterance.pitch = 1.0;
-        utterance.volume = 0.95;
-        utterance.lang = 'en-US';
-        window.speechSynthesis.speak(utterance);
-      }
-
-      // ================================================================
-      //  RESPONSE GENERATOR (human-like variants)
-      // ================================================================
-      const templates = {
-        greeting: [
-          "Hey there! How can I help?",
-          "Hello! I'm all ears.",
-          "Hi! Ready to take your command.",
-          "Good to see you! What's on your mind?"
-        ],
-        open: [
-          "Sure, opening {target} right now!",
-          "Launching {target} for you.",
-          "Here we go — {target} is opening."
-        ],
-        play: [
-          "Playing {query} {platform}.",
-          "Here comes {query} — enjoy!",
-          "Alright, let's listen to {query}."
-        ],
-        search: [
-          "Searching for {query}...",
-          "Looking up {query} for you.",
-          "I'll find the best results for {query}."
-        ],
-        scroll: [
-          "Scrolling {direction}.",
-          "Moving {direction} as you wish."
-        ],
-        navigate: [
-          "Navigating to {target}.",
-          "Taking you to {target} now."
-        ],
-        system: {
-          refresh: ["Refreshing the page.", "Reloading, just a moment."],
-          stop: ["Stopping voice input.", "Okay, I've stopped listening."],
-          clear: ["Clearing the conversation.", "Chat cleared, fresh start."]
-        },
-        time: [
-          "The current time is {time}.",
-          "It's exactly {time} right now."
-        ],
-        math: [
-          "The answer is {result}.",
-          "That equals {result}.",
-          "I calculate {result}."
-        ],
-        unknown: [
-          "Hmm, I didn't quite catch that. Could you rephrase?",
-          "I'm not sure what you meant. Try saying it differently.",
-          "Sorry, I didn't understand that command."
-        ],
-        default_reply: ["Done!", "All set!", "Command executed."]
-      };
-
-      function pick(arr) { return arr[Math.floor(Math.random() * arr.length)]; }
-
-      function generateResponse(action, data = {}) {
-        let raw = '';
-        switch (action) {
-          case 'greeting':
-            raw = pick(templates.greeting);
-            break;
-          case 'open':
-            raw = pick(templates.open).replace(/{target}/g, data.target || 'the page');
-            break;
-          case 'play': {
-            const plat = data.target ? `on ${data.target}` : '';
-            raw = pick(templates.play).replace(/{query}/g, data.query || 'music').replace(/{platform}/g, plat);
-            break;
-          }
-          case 'search':
-            raw = pick(templates.search).replace(/{query}/g, data.query || 'that');
-            break;
-          case 'scroll':
-            raw = pick(templates.scroll).replace(/{direction}/g, data.direction || 'down');
-            break;
-          case 'navigate':
-            raw = pick(templates.navigate).replace(/{target}/g, data.target || 'home');
-            break;
-          case 'system': {
-            const cmd = data.command || 'unknown';
-            if (cmd === 'refresh') raw = pick(templates.system.refresh);
-            else if (cmd === 'stop') raw = pick(templates.system.stop);
-            else if (cmd === 'clear') raw = pick(templates.system.clear);
-            else raw = pick(templates.default_reply);
-            break;
-          }
-          case 'time': {
-            const now = new Date();
-            const t = now.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
-            raw = pick(templates.time).replace(/{time}/g, t);
-            break;
-          }
-          case 'math': {
-            raw = pick(templates.math).replace(/{result}/g, data.result || '0');
-            break;
-          }
-          default:
-            raw = pick(templates.unknown);
-        }
-        return raw || pick(templates.default_reply);
-      }
-
-      // ================================================================
-      //  🧠 SUPER SMART COMMAND ENGINE (same as before)
-      // ================================================================
-      function parseCommand(raw) {
-        if (!raw || typeof raw !== 'string') {
-          return { action: 'unknown', confidence: 0.0 };
-        }
-
-        let input = raw.toLowerCase().trim();
-        input = input.replace(/\b(please|can you|could you|would you|i want to|i need to|let's|lets|maybe|just|kind of|sort of|actually|basically|literally)\b/g, '')
-          .replace(/\s+/g, ' ').trim();
-
-        // 1) GREETING
-        if (/^(hi|hello|hey|howdy|good morning|good afternoon|good evening|yo|sup|what's up|hola|hey there)/i.test(input) &&
-          input.length < 30) {
-          return { action: 'greeting', confidence: 0.98 };
-        }
-
-        // 2) TIME
-        if (/\b(time|clock|what'?s the time|current time|tell me the time)\b/i.test(input)) {
-          return { action: 'time', confidence: 0.97 };
-        }
-
-        // 3) MATH
-        const mathMatch = input.match(/(\d+)\s*([+\-*/])\s*(\d+)/);
-        if (mathMatch) {
-          const a = parseFloat(mathMatch[1]);
-          const op = mathMatch[2];
-          const b = parseFloat(mathMatch[3]);
-          let result = 0,
-            valid = true;
-          switch (op) {
-            case '+':
-              result = a + b;
-              break;
-            case '-':
-              result = a - b;
-              break;
-            case '*':
-              result = a * b;
-              break;
-            case '/':
-              if (b !== 0) result = a / b;
-              else valid = false;
-              break;
-            default:
-              valid = false;
-          }
-          if (valid) return { action: 'math', result, confidence: 0.96 };
-        }
-
-        // 4) SCROLL
-        if (/scroll\s*down|down\s*scroll|move\s*down|go\s*down\b|scroll\s*a\s*little\s*down/i.test(input))
-          return { action: 'scroll', direction: 'down', confidence: 0.94 };
-        if (/scroll\s*up|up\s*scroll|move\s*up|go\s*up\b|scroll\s*a\s*little\s*up/i.test(input))
-          return { action: 'scroll', direction: 'up', confidence: 0.94 };
-
-        // 5) NAVIGATE
-        if (/\b(go\s*home|home\s*page|take\s*me\s*home|navigate\s*home|go\s*to\s*home|scroll to top)\b/i.test(input))
-          return { action: 'navigate', target: 'home', confidence: 0.95 };
-        if (/\b(go\s*back|back\s*page|navigate\s*back)\b/i.test(input))
-          return { action: 'navigate', target: 'back', confidence: 0.93 };
-        if (/\b(go\s*forward|forward\s*page|navigate\s*forward)\b/i.test(input))
-          return { action: 'navigate', target: 'forward', confidence: 0.93 };
-        if (/\b(dashboard|go\s*to\s*dashboard|open\s*dashboard)\b/i.test(input))
-          return { action: 'navigate', target: 'dashboard', confidence: 0.94 };
-        if (/\b(profile|go\s*to\s*profile|open\s*profile)\b/i.test(input))
-          return { action: 'navigate', target: 'profile', confidence: 0.94 };
-
-        // 6) OPEN
-        if (/\b(open\s*youtube|youtube\s*open|go\s*to\s*youtube|launch\s*youtube|yt\b|youtube\s*please)/i.test(input)) {
-          context.lastTarget = 'youtube';
-          return { action: 'open', target: 'youtube', confidence: 0.98 };
-        }
-        if (/\b(open\s*google|google\s*open|go\s*to\s*google|launch\s*google|search\s*google\s*for)/i.test(input)) {
-          context.lastTarget = 'google';
-          return { action: 'open', target: 'google', confidence: 0.98 };
-        }
-        if (/\b(open\s*facebook|facebook\s*open|go\s*to\s*facebook|launch\s*facebook|fb\b)/i.test(input)) {
-          context.lastTarget = 'facebook';
-          return { action: 'open', target: 'facebook', confidence: 0.97 };
-        }
-        if (/\b(open\s*github|github\s*open|go\s*to\s*github|launch\s*github)/i.test(input)) {
-          context.lastTarget = 'github';
-          return { action: 'open', target: 'github', confidence: 0.97 };
-        }
-
-        // 7) PLAY
-        let playMatch = input.match(/play\s+(.+?)\s+by\s+(.+?)(?:\s+on\s+(\w+))?$/i);
-        if (!playMatch) playMatch = input.match(/play\s+(.+?)(?:\s+on\s+(\w+))?$/i);
-        if (playMatch) {
-          let query = playMatch[1].trim();
-          let platform = playMatch[2] || null;
-          if (!query || query.length < 2 || /^(song|music|video|that|it|something)$/i.test(query)) {
-            if (context.lastQuery && context.lastAction === 'play') query = context.lastQuery;
-            else query = 'some great music';
-          }
-          if (!platform && context.lastTarget && ['youtube', 'spotify', 'soundcloud'].includes(context.lastTarget)) {
-            platform = context.lastTarget;
-          }
-          context.lastQuery = query;
-          context.lastTarget = platform || 'default player';
-          context.lastAction = 'play';
-          return { action: 'play', query, target: platform || context.lastTarget, confidence: 0.96 };
-        }
-
-        // 8) SEARCH
-        const searchMatch = input.match(
-          /\b(search|find|look\s*up|show\s+me|get|tell\s+me\s+about|what\s+is|who\s+is|where\s+is|give\s+me)\s+(.+)$/i
-        );
-        if (searchMatch) {
-          let query = searchMatch[2].trim();
-          if (!query || query.length < 2) return { action: 'search', query: 'the latest news', confidence: 0.5 };
-          if (context.lastTarget === 'youtube' && context.lastAction === 'open') {
-            return { action: 'search', query, target: 'youtube', confidence: 0.92 };
-          }
-          context.lastQuery = query;
-          context.lastAction = 'search';
-          return { action: 'search', query, confidence: 0.95 };
-        }
-
-        // 9) REPEAT / AGAIN
-        if (/\b(again|repeat|say\s+that\s+again|one\s+more\s+time|replay|do that again)\b/i.test(input)) {
-          if (context.lastFullCommand) {
-            return { ...context.lastFullCommand, confidence: 0.7, note: 'repeated' };
-          }
-          return { action: 'unknown', confidence: 0.3, input: raw };
-        }
-
-        // 10) SYSTEM
-        if (/\b(refresh|reload|update\s+page)\b/i.test(input))
-          return { action: 'system', command: 'refresh', confidence: 0.95 };
-        if (/\b(stop|cancel|abort|quit|exit|shut up)\b/i.test(input))
-          return { action: 'system', command: 'stop', confidence: 0.93 };
-        if (/\b(clear|reset|empty|clear chat|clear conversation)\b/i.test(input))
-          return { action: 'system', command: 'clear', confidence: 0.94 };
-
-        // 11) CONTEXTUAL FALLBACK (that/it)
-        if (/\b(that|it|this)\b/.test(input) && context.lastQuery) {
-          if (context.lastAction === 'play')
-            return { action: 'play', query: context.lastQuery, target: context.lastTarget, confidence: 0.65,
-            note: 'contextual' };
-          if (context.lastAction === 'search')
-            return { action: 'search', query: context.lastQuery, confidence: 0.65, note: 'contextual' };
-        }
-
-        return { action: 'unknown', confidence: 0.2, input: raw };
-      }
-
-      // ================================================================
-      //  EXECUTE COMMAND
-      // ================================================================
-      function executeCommand(command) {
-        if (!command) return;
-        context.lastFullCommand = command;
-        updateCommandDisplay(command);
-
-        const action = command.action;
-        let spokenResponse = '';
-
-        switch (action) {
-          case 'greeting':
-            spokenResponse = generateResponse('greeting');
-            addMessage('assistant', spokenResponse);
-            speak(spokenResponse, 0.9);
-            setStatus('Done ✓', 'success');
-            setTimeout(() => setStatus(wakeMode ? 'Wake mode' : 'Standby', wakeMode ? 'wake' : ''), 1200);
-            return;
-
-          case 'time':
-            spokenResponse = generateResponse('time');
-            addMessage('assistant', spokenResponse);
-            speak(spokenResponse, 0.9);
-            setStatus('Done ✓', 'success');
-            setTimeout(() => setStatus(wakeMode ? 'Wake mode' : 'Standby', wakeMode ? 'wake' : ''), 1200);
-            return;
-
-          case 'math':
-            spokenResponse = generateResponse('math', { result: command.result });
-            addMessage('assistant', spokenResponse);
-            speak(spokenResponse, 0.9);
-            setStatus('Done ✓', 'success');
-            setTimeout(() => setStatus(wakeMode ? 'Wake mode' : 'Standby', wakeMode ? 'wake' : ''), 1200);
-            return;
-
-          case 'open': {
-            const target = command.target || 'the page';
-            spokenResponse = generateResponse('open', { target });
-            addMessage('assistant', spokenResponse);
-            speak(spokenResponse, 0.9);
-            if (target === 'youtube') window.open('https://youtube.com', '_blank');
-            else if (target === 'google') window.open('https://google.com', '_blank');
-            else if (target === 'facebook') window.open('https://facebook.com', '_blank');
-            else if (target === 'github') window.open('https://github.com', '_blank');
-            context.lastAction = 'open';
-            context.lastTarget = target;
-            setStatus('Done ✓', 'success');
-            setTimeout(() => setStatus(wakeMode ? 'Wake mode' : 'Standby', wakeMode ? 'wake' : ''), 1200);
-            return;
-          }
-
-          case 'play': {
-            const query = command.query || 'music';
-            const target = command.target || '';
-            spokenResponse = generateResponse('play', { query, target });
-            addMessage('assistant', spokenResponse);
-            speak(spokenResponse, 0.85);
-            if (target && target.toLowerCase() === 'youtube') {
-              window.open(`https://www.youtube.com/results?search_query=${encodeURIComponent(query)}`, '_blank');
+            function getKeywords() {
+                return LANG_KEYWORDS[currentLang] || LANG_KEYWORDS['en-US'];
             }
-            context.lastAction = 'play';
-            context.lastQuery = query;
-            context.lastTarget = target || 'default';
-            setStatus('Done ✓', 'success');
-            setTimeout(() => setStatus(wakeMode ? 'Wake mode' : 'Standby', wakeMode ? 'wake' : ''), 1200);
-            return;
-          }
 
-          case 'search': {
-            const query = command.query || 'web';
-            const target = command.target || 'web';
-            spokenResponse = generateResponse('search', { query });
-            addMessage('assistant', spokenResponse);
-            speak(spokenResponse, 0.9);
-            if (target === 'youtube') {
-              window.open(`https://www.youtube.com/results?search_query=${encodeURIComponent(query)}`, '_blank');
-            } else {
-              window.open(`https://www.google.com/search?q=${encodeURIComponent(query)}`, '_blank');
+            // ================================================================
+            //  UI HELPERS
+            // ================================================================
+            function addMessage(type, text) {
+                const empty = chatLog.querySelector('.empty-chat');
+                if (empty) empty.remove();
+                const wrapper = document.createElement('div');
+                wrapper.className = `chat-message ${type}`;
+                const bubble = document.createElement('div');
+                bubble.className = 'bubble';
+                bubble.textContent = text;
+                const time = document.createElement('div');
+                time.className = 'time';
+                time.textContent = new Date().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
+                wrapper.appendChild(bubble);
+                wrapper.appendChild(time);
+                chatLog.appendChild(wrapper);
+                chatLog.scrollTop = chatLog.scrollHeight;
             }
-            context.lastAction = 'search';
-            context.lastQuery = query;
-            setStatus('Done ✓', 'success');
-            setTimeout(() => setStatus(wakeMode ? 'Wake mode' : 'Standby', wakeMode ? 'wake' : ''), 1200);
-            return;
-          }
 
-          case 'scroll': {
-            const dir = command.direction || 'down';
-            spokenResponse = generateResponse('scroll', { direction: dir });
-            addMessage('assistant', spokenResponse);
-            speak(spokenResponse, 0.9);
-            if (dir === 'down') window.scrollBy({ top: 500, behavior: 'smooth' });
-            else window.scrollBy({ top: -500, behavior: 'smooth' });
-            context.lastAction = 'scroll';
-            setStatus('Done ✓', 'success');
-            setTimeout(() => setStatus(wakeMode ? 'Wake mode' : 'Standby', wakeMode ? 'wake' : ''), 1200);
-            return;
-          }
-
-          case 'navigate': {
-            const target = command.target || 'home';
-            spokenResponse = generateResponse('navigate', { target });
-            addMessage('assistant', spokenResponse);
-            speak(spokenResponse, 0.9);
-            if (target === 'home') window.scrollTo({ top: 0, behavior: 'smooth' });
-            else if (target === 'back') history.back();
-            else if (target === 'forward') history.forward();
-            context.lastAction = 'navigate';
-            context.lastTarget = target;
-            setStatus('Done ✓', 'success');
-            setTimeout(() => setStatus(wakeMode ? 'Wake mode' : 'Standby', wakeMode ? 'wake' : ''), 1200);
-            return;
-          }
-
-          case 'system': {
-            const cmd = command.command || 'unknown';
-            spokenResponse = generateResponse('system', { command: cmd });
-            addMessage('assistant', spokenResponse);
-            speak(spokenResponse, 0.9);
-            if (cmd === 'refresh') location.reload();
-            else if (cmd === 'stop') {
-              if (recognition) { try { recognition.abort(); } catch (_) {} }
-              isListening = false;
-              micBtn.classList.remove('listening', 'error');
-              appContainer.classList.remove('listening');
-              setStatus('Stopped', '');
-              updateWakeIndicator('🔇 idle', false);
-            } else if (cmd === 'clear') {
-              chatLog.innerHTML = `<div class="empty-chat">✨ Conversation cleared. Say "Hey Darkranks" or tap the mic.</div>`;
-              updateCommandDisplay(null);
+            function setStatus(label, type) {
+                statusBadge.textContent = label;
+                statusBadge.className = 'status-badge';
+                if (type) statusBadge.classList.add(type);
             }
-            context.lastAction = 'system';
-            if (cmd !== 'stop' && cmd !== 'clear') {
-              setStatus('Done ✓', 'success');
-              setTimeout(() => setStatus(wakeMode ? 'Wake mode' : 'Standby', wakeMode ? 'wake' : ''), 1200);
+
+            function updateCommandDisplay(command) {
+                if (!command || Object.keys(command).length === 0) {
+                    jsonOutput.innerHTML = '<span class="empty">Waiting...</span>';
+                    return;
+                }
+                const jsonStr = JSON.stringify(command, null, 2);
+                const highlighted = jsonStr
+                    .replace(/"([^"]+)":/g, '<span class="key">"$1"</span>:')
+                    .replace(/: "([^"]+)"/g, ': <span class="string">"$1"</span>')
+                    .replace(/: (\d+\.?\d*)/g, ': <span class="number">$1</span>');
+                jsonOutput.innerHTML = highlighted;
             }
-            return;
-          }
 
-          case 'unknown':
-          default: {
-            spokenResponse = generateResponse('unknown');
-            addMessage('assistant', spokenResponse);
-            speak(spokenResponse, 0.85);
-            setStatus('Unknown', 'error');
-            setTimeout(() => setStatus(wakeMode ? 'Wake mode' : 'Standby', wakeMode ? 'wake' : ''), 1500);
-            return;
-          }
-        }
-      }
+            function updateWakeIndicator(text, isActive) {
+                wakeIndicator.textContent = text || '🔇 idle';
+                wakeIndicator.classList.toggle('active', !!isActive);
+            }
 
-      // ================================================================
-      //  WAKE-WORD HANDLING
-      // ================================================================
-      function processWakeAndCommand(transcript) {
-        if (!transcript) return;
+            // ================================================================
+            //  SPEECH SYNTHESIS
+            // ================================================================
+            function speak(text, rate = 0.92) {
+                if (!window.speechSynthesis) return;
+                window.speechSynthesis.cancel();
+                const utterance = new SpeechSynthesisUtterance(text);
+                utterance.rate = rate;
+                utterance.pitch = 1.0;
+                utterance.volume = 0.95;
+                utterance.lang = currentLang;
+                window.speechSynthesis.speak(utterance);
+            }
 
-        const lower = transcript.toLowerCase().trim();
+            // ================================================================
+            //  RESPONSE GENERATOR
+            // ================================================================
+            const templates = {
+                greeting: ['Hey there!', 'Hello!', 'Hi!', 'Good to see you!'],
+                open: ['Opening {target}...', 'Launching {target}...', 'Here we go – {target} is opening.'],
+                play: ['Playing {query} {platform}.', 'Here comes {query}.', 'Alright, listening to {query}.'],
+                search: ['Searching for {query}...', 'Looking up {query}...', 'I\'ll find results for {query}.'],
+                scroll: ['Scrolling {direction}.', 'Moving {direction}.'],
+                navigate: ['Navigating to {target}.', 'Going to {target}.'],
+                click: ['Clicking on "{text}".', 'Tapping "{text}".'],
+                type: ['Typing "{text}" into "{field}".', 'Filling "{field}" with "{text}".'],
+                goto: ['Going to "{section}".', 'Scrolling to "{section}".'],
+                system: {
+                    refresh: ['Refreshing the page.', 'Reloading.'],
+                    stop: ['Stopping voice input.', 'Okay, stopped.'],
+                    clear: ['Clearing the conversation.', 'Chat cleared.'],
+                },
+                time: ['The current time is {time}.', 'It\'s exactly {time}.'],
+                math: ['The answer is {result}.', 'That equals {result}.'],
+                unknown: ['Hmm, I didn\'t catch that. Could you rephrase?', 'Sorry, I didn\'t understand.'],
+                default: ['Done!', 'All set!', 'Command executed.'],
+                answer: ['{answer}'],
+            };
 
-        // If wake mode is off, just process as normal command (manual)
-        if (!wakeMode) {
-          // In manual mode, we just process the whole transcript
-          const command = parseCommand(transcript);
-          executeCommand(command);
-          return;
-        }
+            function pick(arr) { return arr[Math.floor(Math.random() * arr.length)]; }
 
-        // Wake mode: check for wake word
-        const index = lower.indexOf(WAKE_WORD);
-        if (index !== -1) {
-          // wake word found
-          const afterWake = transcript.substring(index + WAKE_WORD.length).trim();
-          if (afterWake.length > 0) {
-            // We have a command after wake word
-            const command = parseCommand(afterWake);
-            executeCommand(command);
-            updateWakeIndicator('🎤 command heard', false);
-            setStatus('Wake mode', 'wake');
-          } else {
-            // Only wake word, no command yet – we wait for next utterance
-            updateWakeIndicator('🔊 waiting for command...', true);
-            setStatus('Listening...', 'active');
-            // We'll accumulate subsequent transcripts until we get a command
-            commandBuffer = '';
-            wakeDetected = true;
-          }
-        } else {
-          // No wake word in this transcript
-          if (wakeDetected) {
-            // We are in "waiting for command" state, add to buffer
-            commandBuffer += ' ' + transcript;
-            // If buffer has content, we can try to parse it
-            const trimmed = commandBuffer.trim();
-            if (trimmed.length > 0) {
-              // Check if it looks like a command
-              const testCmd = parseCommand(trimmed);
-              if (testCmd.action !== 'unknown' && testCmd.confidence > 0.3) {
-                // Good enough, execute
-                executeCommand(testCmd);
+            function generateResponse(action, data = {}) {
+                let raw = '';
+                switch (action) {
+                    case 'greeting':
+                        raw = pick(templates.greeting);
+                        break;
+                    case 'open':
+                        raw = pick(templates.open).replace(/{target}/g, data.target || 'the page');
+                        break;
+                    case 'play':
+                        raw = pick(templates.play).replace(/{query}/g, data.query || 'music').replace(/{platform}/g, data
+                            .target ? `on ${data.target}` : '');
+                        break;
+                    case 'search':
+                        raw = pick(templates.search).replace(/{query}/g, data.query || 'that');
+                        break;
+                    case 'scroll':
+                        raw = pick(templates.scroll).replace(/{direction}/g, data.direction || 'down');
+                        break;
+                    case 'navigate':
+                        raw = pick(templates.navigate).replace(/{target}/g, data.target || 'home');
+                        break;
+                    case 'click':
+                        raw = pick(templates.click).replace(/{text}/g, data.text || 'it');
+                        break;
+                    case 'type':
+                        raw = pick(templates.type).replace(/{text}/g, data.text || '').replace(/{field}/g, data.field ||
+                            'field');
+                        break;
+                    case 'goto':
+                        raw = pick(templates.goto).replace(/{section}/g, data.section || 'section');
+                        break;
+                    case 'system':
+                        if (data.command === 'refresh') raw = pick(templates.system.refresh);
+                        else if (data.command === 'stop') raw = pick(templates.system.stop);
+                        else if (data.command === 'clear') raw = pick(templates.system.clear);
+                        else raw = pick(templates.default);
+                        break;
+                    case 'time':
+                        const now = new Date();
+                        const t = now.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+                        raw = pick(templates.time).replace(/{time}/g, t);
+                        break;
+                    case 'math':
+                        raw = pick(templates.math).replace(/{result}/g, data.result || '0');
+                        break;
+                    case 'answer':
+                        raw = pick(templates.answer).replace(/{answer}/g, data.answer || '');
+                        break;
+                    default:
+                        raw = pick(templates.unknown);
+                }
+                return raw || pick(templates.default);
+            }
+
+            // ================================================================
+            //  🧠 SMART PARSER (language-aware)
+            // ================================================================
+            function parseCommand(raw) {
+                if (!raw || typeof raw !== 'string') return { action: 'unknown', confidence: 0.0 };
+
+                let input = raw.toLowerCase().trim();
+                // Remove filler
+                input = input.replace(/\b(please|can you|could you|would you|i want to|i need to|let's|maybe|just|kind of|sort of|actually|basically|literally)\b/g, '')
+                    .replace(/\s+/g, ' ').trim();
+
+                const kw = getKeywords();
+
+                // Helper: check if input starts with any keyword from a list
+                function startsWithAny(list) {
+                    for (let k of list) {
+                        if (input.startsWith(k + ' ')) return true;
+                        // also allow at beginning
+                    }
+                    return false;
+                }
+
+                function containsAny(list) {
+                    for (let k of list) {
+                        if (input.includes(k)) return true;
+                    }
+                    return false;
+                }
+
+                // --- GREETING ---
+                if (/^(hi|hello|hey|howdy|good morning|good afternoon|good evening|yo|sup|what's up|hola|hey there)/i.test(
+                        input) && input.length < 30) {
+                    return { action: 'greeting', confidence: 0.98 };
+                }
+
+                // --- TIME ---
+                if (containsAny(['time', 'clock', 'what\'s the time', 'current time'])) {
+                    return { action: 'time', confidence: 0.97 };
+                }
+
+                // --- MATH ---
+                const mathMatch = input.match(/(\d+)\s*([+\-*/])\s*(\d+)/);
+                if (mathMatch) {
+                    const a = parseFloat(mathMatch[1]);
+                    const op = mathMatch[2];
+                    const b = parseFloat(mathMatch[3]);
+                    let result = 0,
+                        valid = true;
+                    switch (op) {
+                        case '+':
+                            result = a + b;
+                            break;
+                        case '-':
+                            result = a - b;
+                            break;
+                        case '*':
+                            result = a * b;
+                            break;
+                        case '/':
+                            if (b !== 0) result = a / b;
+                            else valid = false;
+                            break;
+                        default:
+                            valid = false;
+                    }
+                    if (valid) return { action: 'math', result, confidence: 0.96 };
+                }
+
+                // --- SCROLL ---
+                if (containsAny(kw.scroll)) {
+                    if (/down|abajo|bas|नीचे/.test(input)) return { action: 'scroll', direction: 'down', confidence: 0.94 };
+                    if (/up|arriba|haut|oben|ऊपर/.test(input)) return { action: 'scroll', direction: 'up', confidence: 0.94 };
+                    // default down if direction not clear
+                    return { action: 'scroll', direction: 'down', confidence: 0.8 };
+                }
+
+                // --- NAVIGATE (home, back, forward) ---
+                if (containsAny(kw.home)) return { action: 'navigate', target: 'home', confidence: 0.95 };
+                if (containsAny(kw.back)) return { action: 'navigate', target: 'back', confidence: 0.93 };
+                if (containsAny(kw.forward)) return { action: 'navigate', target: 'forward', confidence: 0.93 };
+                // "go to dashboard", "profile" – we can handle specific targets
+                if (/\b(dashboard|profile|settings)\b/.test(input)) {
+                    const t = input.match(/\b(dashboard|profile|settings)\b/)[0];
+                    return { action: 'navigate', target: t, confidence: 0.92 };
+                }
+
+                // --- OPEN ---
+                for (let k of kw.open) {
+                    if (input.includes(k)) {
+                        const targetMatch = input.match(/\b(youtube|google|facebook|github|gmail|twitter|instagram|linkedin|reddit|amazon|netflix|spotify)\b/);
+                        if (targetMatch) {
+                            context.lastTarget = targetMatch[0];
+                            return { action: 'open', target: targetMatch[0], confidence: 0.97 };
+                        }
+                        // generic open – maybe just open a page
+                        const rest = input.replace(k, '').trim();
+                        if (rest.length > 0) {
+                            return { action: 'open', target: rest, confidence: 0.8 };
+                        }
+                        return { action: 'open', target: 'home', confidence: 0.7 };
+                    }
+                }
+
+                // --- PLAY ---
+                if (containsAny(kw.play)) {
+                    let query = input.replace(new RegExp(kw.play.join('|'), 'gi'), '').trim();
+                    if (!query || query.length < 2) {
+                        if (context.lastQuery && context.lastAction === 'play') query = context.lastQuery;
+                        else query = 'some music';
+                    }
+                    // detect platform
+                    let platform = null;
+                    if (/\b(youtube|spotify|soundcloud|apple music|amazon music)\b/.test(query)) {
+                        const m = query.match(/\b(youtube|spotify|soundcloud|apple music|amazon music)\b/);
+                        platform = m[0];
+                        query = query.replace(m[0], '').trim();
+                    }
+                    context.lastQuery = query;
+                    context.lastTarget = platform || 'default';
+                    context.lastAction = 'play';
+                    return { action: 'play', query, target: platform || 'default', confidence: 0.96 };
+                }
+
+                // --- SEARCH / Q&A ---
+                if (containsAny(kw.search)) {
+                    let query = input.replace(new RegExp(kw.search.join('|'), 'gi'), '').trim();
+                    if (!query || query.length < 2) query = 'web';
+                    context.lastQuery = query;
+                    context.lastAction = 'search';
+                    return { action: 'search', query, confidence: 0.95 };
+                }
+
+                // --- CLICK ---
+                if (containsAny(kw.click)) {
+                    let text = input.replace(new RegExp(kw.click.join('|'), 'gi'), '').trim();
+                    if (text.length > 0) {
+                        return { action: 'click', text, confidence: 0.92 };
+                    }
+                }
+
+                // --- TYPE ---
+                if (containsAny(kw.type)) {
+                    // pattern: type [text] into [field] or type [text] in [field]
+                    const typeMatch = input.match(/(?:type|enter|fill|put)\s+(.+?)\s+(?:into|in|on)\s+(.+)/i);
+                    if (typeMatch) {
+                        const text = typeMatch[1].trim();
+                        const field = typeMatch[2].trim();
+                        return { action: 'type', text, field, confidence: 0.93 };
+                    }
+                    // fallback: just type text (no field specified) - we'll use first input
+                    let text = input.replace(new RegExp(kw.type.join('|'), 'gi'), '').trim();
+                    if (text.length > 0) {
+                        return { action: 'type', text, field: null, confidence: 0.8 };
+                    }
+                }
+
+                // --- GOTO (scroll to section) ---
+                if (containsAny(kw.goto)) {
+                    let section = input.replace(new RegExp(kw.goto.join('|'), 'gi'), '').trim();
+                    if (section.length > 0) {
+                        return { action: 'goto', section, confidence: 0.9 };
+                    }
+                }
+
+                // --- SYSTEM ---
+                if (containsAny(kw.refresh)) return { action: 'system', command: 'refresh', confidence: 0.95 };
+                if (containsAny(kw.stop)) return { action: 'system', command: 'stop', confidence: 0.93 };
+                if (containsAny(kw.clear)) return { action: 'system', command: 'clear', confidence: 0.94 };
+
+                // --- REPEAT ---
+                if (containsAny(['again', 'repeat', 'replay', 'do that again'])) {
+                    if (context.lastFullCommand) return { ...context.lastFullCommand, confidence: 0.7, note: 'repeated' };
+                }
+
+                // --- CONTEXTUAL ---
+                if (/\b(that|it|this)\b/.test(input) && context.lastQuery) {
+                    if (context.lastAction === 'play')
+                        return { action: 'play', query: context.lastQuery, target: context.lastTarget, confidence: 0.65,
+                            note: 'contextual' };
+                    if (context.lastAction === 'search')
+                        return { action: 'search', query: context.lastQuery, confidence: 0.65, note: 'contextual' };
+                }
+
+                return { action: 'unknown', confidence: 0.2, input: raw };
+            }
+
+            // ================================================================
+            //  EXECUTE COMMAND (with Q&A and website control)
+            // ================================================================
+            async function executeCommand(command) {
+                if (!command) return;
+                context.lastFullCommand = command;
+                updateCommandDisplay(command);
+
+                const action = command.action;
+                let spokenResponse = '';
+
+                // --- GREETING ---
+                if (action === 'greeting') {
+                    spokenResponse = generateResponse('greeting');
+                    addMessage('assistant', spokenResponse);
+                    speak(spokenResponse);
+                    setStatus('Done ✓', 'success');
+                    setTimeout(() => setStatus(wakeMode ? 'Wake mode' : 'Standby', wakeMode ? 'wake' : ''), 1200);
+                    return;
+                }
+
+                // --- TIME ---
+                if (action === 'time') {
+                    spokenResponse = generateResponse('time');
+                    addMessage('assistant', spokenResponse);
+                    speak(spokenResponse);
+                    setStatus('Done ✓', 'success');
+                    setTimeout(() => setStatus(wakeMode ? 'Wake mode' : 'Standby', wakeMode ? 'wake' : ''), 1200);
+                    return;
+                }
+
+                // --- MATH ---
+                if (action === 'math') {
+                    spokenResponse = generateResponse('math', { result: command.result });
+                    addMessage('assistant', spokenResponse);
+                    speak(spokenResponse);
+                    setStatus('Done ✓', 'success');
+                    setTimeout(() => setStatus(wakeMode ? 'Wake mode' : 'Standby', wakeMode ? 'wake' : ''), 1200);
+                    return;
+                }
+
+                // --- OPEN ---
+                if (action === 'open') {
+                    const target = command.target || 'page';
+                    spokenResponse = generateResponse('open', { target });
+                    addMessage('assistant', spokenResponse);
+                    speak(spokenResponse);
+                    const urlMap = {
+                        youtube: 'https://youtube.com',
+                        google: 'https://google.com',
+                        facebook: 'https://facebook.com',
+                        github: 'https://github.com',
+                        gmail: 'https://gmail.com',
+                        twitter: 'https://twitter.com',
+                        instagram: 'https://instagram.com',
+                        linkedin: 'https://linkedin.com',
+                        reddit: 'https://reddit.com',
+                        amazon: 'https://amazon.com',
+                        netflix: 'https://netflix.com',
+                        spotify: 'https://spotify.com',
+                    };
+                    if (urlMap[target]) window.open(urlMap[target], '_blank');
+                    else window.open(`https://${target}.com`, '_blank');
+                    context.lastAction = 'open';
+                    context.lastTarget = target;
+                    setStatus('Done ✓', 'success');
+                    setTimeout(() => setStatus(wakeMode ? 'Wake mode' : 'Standby', wakeMode ? 'wake' : ''), 1200);
+                    return;
+                }
+
+                // --- PLAY ---
+                if (action === 'play') {
+                    const query = command.query || 'music';
+                    const target = command.target || '';
+                    spokenResponse = generateResponse('play', { query, target });
+                    addMessage('assistant', spokenResponse);
+                    speak(spokenResponse);
+                    if (target && target.toLowerCase() === 'youtube') {
+                        window.open(`https://www.youtube.com/results?search_query=${encodeURIComponent(query)}`, '_blank');
+                    } else if (target && target.toLowerCase() === 'spotify') {
+                        window.open(`https://open.spotify.com/search/${encodeURIComponent(query)}`, '_blank');
+                    } else {
+                        // default google search for music
+                        window.open(`https://www.google.com/search?q=${encodeURIComponent(query)}+music`, '_blank');
+                    }
+                    context.lastAction = 'play';
+                    context.lastQuery = query;
+                    context.lastTarget = target || 'default';
+                    setStatus('Done ✓', 'success');
+                    setTimeout(() => setStatus(wakeMode ? 'Wake mode' : 'Standby', wakeMode ? 'wake' : ''), 1200);
+                    return;
+                }
+
+                // --- SEARCH / Q&A ---
+                if (action === 'search') {
+                    const query = command.query || 'web';
+                    // Try DuckDuckGo Instant Answer first
+                    try {
+                        const resp = await fetch(
+                            `https://api.duckduckgo.com/?q=${encodeURIComponent(query)}&format=json&no_html=1&skip_disambig=1`
+                        );
+                        const data = await resp.json();
+                        if (data.AbstractText && data.AbstractText.length > 0) {
+                            const answer = data.AbstractText;
+                            const msg = generateResponse('answer', { answer });
+                            addMessage('assistant', msg);
+                            speak(msg);
+                            updateCommandDisplay({ ...command, answer });
+                            setStatus('Done ✓', 'success');
+                            setTimeout(() => setStatus(wakeMode ? 'Wake mode' : 'Standby', wakeMode ? 'wake' : ''), 1200);
+                            return;
+                        }
+                    } catch (e) { /* fallback to google search */ }
+
+                    // Fallback: open Google search
+                    window.open(`https://www.google.com/search?q=${encodeURIComponent(query)}`, '_blank');
+                    const fallbackMsg = `I couldn't find a direct answer. I've opened Google for "${query}".`;
+                    addMessage('assistant', fallbackMsg);
+                    speak(fallbackMsg);
+                    context.lastAction = 'search';
+                    context.lastQuery = query;
+                    setStatus('Done ✓', 'success');
+                    setTimeout(() => setStatus(wakeMode ? 'Wake mode' : 'Standby', wakeMode ? 'wake' : ''), 1200);
+                    return;
+                }
+
+                // --- SCROLL ---
+                if (action === 'scroll') {
+                    const dir = command.direction || 'down';
+                    spokenResponse = generateResponse('scroll', { direction: dir });
+                    addMessage('assistant', spokenResponse);
+                    speak(spokenResponse);
+                    if (dir === 'down') window.scrollBy({ top: 500, behavior: 'smooth' });
+                    else window.scrollBy({ top: -500, behavior: 'smooth' });
+                    context.lastAction = 'scroll';
+                    setStatus('Done ✓', 'success');
+                    setTimeout(() => setStatus(wakeMode ? 'Wake mode' : 'Standby', wakeMode ? 'wake' : ''), 1200);
+                    return;
+                }
+
+                // --- NAVIGATE ---
+                if (action === 'navigate') {
+                    const target = command.target || 'home';
+                    spokenResponse = generateResponse('navigate', { target });
+                    addMessage('assistant', spokenResponse);
+                    speak(spokenResponse);
+                    if (target === 'home') window.scrollTo({ top: 0, behavior: 'smooth' });
+                    else if (target === 'back') history.back();
+                    else if (target === 'forward') history.forward();
+                    else {
+                        // try to scroll to element with that id or text
+                        const el = document.getElementById(target) ||
+                            document.querySelector(`[name="${target}"]`) ||
+                            document.querySelector(`[data-section="${target}"]`) ||
+                            Array.from(document.querySelectorAll('*')).find(el => el.textContent.trim().toLowerCase() ===
+                                target.toLowerCase());
+                        if (el) el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                    }
+                    context.lastAction = 'navigate';
+                    context.lastTarget = target;
+                    setStatus('Done ✓', 'success');
+                    setTimeout(() => setStatus(wakeMode ? 'Wake mode' : 'Standby', wakeMode ? 'wake' : ''), 1200);
+                    return;
+                }
+
+                // --- CLICK ---
+                if (action === 'click') {
+                    const text = command.text || '';
+                    if (!text) {
+                        spokenResponse = 'I didn\'t catch what to click.';
+                        addMessage('assistant', spokenResponse);
+                        speak(spokenResponse);
+                        return;
+                    }
+                    // find element by text (button, link, etc.)
+                    const elements = Array.from(document.querySelectorAll('button, a, [role="button"], input[type="submit"], .clickable'));
+                    let targetEl = null;
+                    for (let el of elements) {
+                        if (el.textContent.trim().toLowerCase() === text.toLowerCase()) {
+                            targetEl = el;
+                            break;
+                        }
+                    }
+                    if (!targetEl) {
+                        // try any element with that text
+                        const all = Array.from(document.querySelectorAll('*'));
+                        for (let el of all) {
+                            if (el.textContent.trim().toLowerCase() === text.toLowerCase() && el.offsetParent !== null) {
+                                targetEl = el;
+                                break;
+                            }
+                        }
+                    }
+                    if (targetEl) {
+                        targetEl.click();
+                        spokenResponse = generateResponse('click', { text });
+                        addMessage('assistant', spokenResponse);
+                        speak(spokenResponse);
+                    } else {
+                        spokenResponse = `I couldn't find anything to click with text "${text}".`;
+                        addMessage('assistant', spokenResponse);
+                        speak(spokenResponse);
+                    }
+                    setStatus('Done ✓', 'success');
+                    setTimeout(() => setStatus(wakeMode ? 'Wake mode' : 'Standby', wakeMode ? 'wake' : ''), 1200);
+                    return;
+                }
+
+                // --- TYPE ---
+                if (action === 'type') {
+                    const text = command.text || '';
+                    const field = command.field || null;
+                    if (!text) {
+                        spokenResponse = 'I didn\'t hear what to type.';
+                        addMessage('assistant', spokenResponse);
+                        speak(spokenResponse);
+                        return;
+                    }
+                    let inputEl = null;
+                    if (field) {
+                        // find input by label, placeholder, name, id
+                        const inputs = Array.from(document.querySelectorAll('input, textarea'));
+                        for (let inp of inputs) {
+                            const label = inp.labels ? Array.from(inp.labels).map(l => l.textContent.trim().toLowerCase())
+                                .join(' ') : '';
+                            const placeholder = (inp.placeholder || '').toLowerCase();
+                            const name = (inp.name || '').toLowerCase();
+                            const id = (inp.id || '').toLowerCase();
+                            const fieldLower = field.toLowerCase();
+                            if (label.includes(fieldLower) || placeholder.includes(fieldLower) ||
+                                name.includes(fieldLower) || id.includes(fieldLower)) {
+                                inputEl = inp;
+                                break;
+                            }
+                        }
+                        if (!inputEl) {
+                            // fallback: any input/textarea
+                            inputEl = document.querySelector('input, textarea');
+                        }
+                    } else {
+                        // no field specified -> use first input/textarea
+                        inputEl = document.querySelector('input, textarea');
+                    }
+                    if (inputEl) {
+                        inputEl.value = text;
+                        inputEl.dispatchEvent(new Event('input', { bubbles: true }));
+                        inputEl.focus();
+                        spokenResponse = generateResponse('type', { text, field: field || 'input' });
+                        addMessage('assistant', spokenResponse);
+                        speak(spokenResponse);
+                    } else {
+                        spokenResponse = 'I couldn\'t find a place to type.';
+                        addMessage('assistant', spokenResponse);
+                        speak(spokenResponse);
+                    }
+                    setStatus('Done ✓', 'success');
+                    setTimeout(() => setStatus(wakeMode ? 'Wake mode' : 'Standby', wakeMode ? 'wake' : ''), 1200);
+                    return;
+                }
+
+                // --- GOTO ---
+                if (action === 'goto') {
+                    const section = command.section || '';
+                    if (!section) {
+                        spokenResponse = 'I didn\'t catch where to go.';
+                        addMessage('assistant', spokenResponse);
+                        speak(spokenResponse);
+                        return;
+                    }
+                    // try to find element
+                    const el = document.getElementById(section) ||
+                        document.querySelector(`[name="${section}"]`) ||
+                        document.querySelector(`[data-section="${section}"]`) ||
+                        Array.from(document.querySelectorAll('*')).find(el => el.textContent.trim().toLowerCase() ===
+                            section.toLowerCase() && el.offsetParent !== null);
+                    if (el) {
+                        el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                        spokenResponse = generateResponse('goto', { section });
+                        addMessage('assistant', spokenResponse);
+                        speak(spokenResponse);
+                    } else {
+                        spokenResponse = `I couldn't find a section named "${section}".`;
+                        addMessage('assistant', spokenResponse);
+                        speak(spokenResponse);
+                    }
+                    setStatus('Done ✓', 'success');
+                    setTimeout(() => setStatus(wakeMode ? 'Wake mode' : 'Standby', wakeMode ? 'wake' : ''), 1200);
+                    return;
+                }
+
+                // --- SYSTEM ---
+                if (action === 'system') {
+                    const cmd = command.command || 'unknown';
+                    spokenResponse = generateResponse('system', { command: cmd });
+                    addMessage('assistant', spokenResponse);
+                    speak(spokenResponse);
+                    if (cmd === 'refresh') location.reload();
+                    else if (cmd === 'stop') {
+                        if (recognition) { try { recognition.abort(); } catch (_) {} }
+                        isListening = false;
+                        micBtn.classList.remove('listening', 'error');
+                        appContainer.classList.remove('listening');
+                        setStatus('Stopped', '');
+                        updateWakeIndicator('🔇 idle', false);
+                    } else if (cmd === 'clear') {
+                        chatLog.innerHTML =
+                        `<div class="empty-chat">✨ Conversation cleared. Say "Hey Darkranks" or tap the mic.</div>`;
+                        updateCommandDisplay(null);
+                    }
+                    context.lastAction = 'system';
+                    if (cmd !== 'stop' && cmd !== 'clear') {
+                        setStatus('Done ✓', 'success');
+                        setTimeout(() => setStatus(wakeMode ? 'Wake mode' : 'Standby', wakeMode ? 'wake' : ''), 1200);
+                    }
+                    return;
+                }
+
+                // --- UNKNOWN ---
+                if (action === 'unknown' || !action) {
+                    spokenResponse = generateResponse('unknown');
+                    addMessage('assistant', spokenResponse);
+                    speak(spokenResponse);
+                    setStatus('Unknown', 'error');
+                    setTimeout(() => setStatus(wakeMode ? 'Wake mode' : 'Standby', wakeMode ? 'wake' : ''), 1500);
+                    return;
+                }
+
+                // fallback
+                spokenResponse = pick(templates.default);
+                addMessage('assistant', spokenResponse);
+                speak(spokenResponse);
+            }
+
+            // ================================================================
+            //  WAKE-WORD HANDLING
+            // ================================================================
+            function processWakeAndCommand(transcript) {
+                if (!transcript) return;
+                const lower = transcript.toLowerCase().trim();
+
+                if (!wakeMode) {
+                    // manual mode – process directly
+                    const command = parseCommand(transcript);
+                    executeCommand(command);
+                    return;
+                }
+
+                const index = lower.indexOf(WAKE_WORD);
+                if (index !== -1) {
+                    const afterWake = transcript.substring(index + WAKE_WORD.length).trim();
+                    if (afterWake.length > 0) {
+                        const command = parseCommand(afterWake);
+                        executeCommand(command);
+                        updateWakeIndicator('🎤 command heard', false);
+                        setStatus('Wake mode', 'wake');
+                    } else {
+                        updateWakeIndicator('🔊 waiting for command...', true);
+                        setStatus('Listening...', 'active');
+                        commandBuffer = '';
+                        wakeDetected = true;
+                    }
+                } else {
+                    if (wakeDetected) {
+                        commandBuffer += ' ' + transcript;
+                        const trimmed = commandBuffer.trim();
+                        if (trimmed.length > 0) {
+                            const testCmd = parseCommand(trimmed);
+                            if (testCmd.action !== 'unknown' && testCmd.confidence > 0.3) {
+                                executeCommand(testCmd);
+                                wakeDetected = false;
+                                commandBuffer = '';
+                                updateWakeIndicator('🎤 command executed', false);
+                                setStatus('Done ✓', 'success');
+                                setTimeout(() => setStatus('Wake mode', 'wake'), 1200);
+                            } else {
+                                clearTimeout(window.wakeTimeout);
+                                window.wakeTimeout = setTimeout(() => {
+                                    if (wakeDetected) {
+                                        wakeDetected = false;
+                                        commandBuffer = '';
+                                        updateWakeIndicator('🔇 timeout', false);
+                                        setStatus('Wake mode', 'wake');
+                                        addMessage('assistant', '⏳ No command heard, try again.');
+                                        speak('I didn\'t hear a command.', 0.85);
+                                    }
+                                }, 3000);
+                            }
+                        }
+                    } else {
+                        updateWakeIndicator('🔊 listening...', true);
+                        setStatus('Wake mode', 'wake');
+                    }
+                }
+            }
+
+            // ================================================================
+            //  WEB SPEECH API
+            // ================================================================
+            function initSpeechRecognition() {
+                const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+                if (!SR) {
+                    setStatus('Not supported', 'error');
+                    micBtn.disabled = true;
+                    micBtn.title = 'Voice not supported';
+                    addMessage('assistant', '⚠️ Browser does not support Speech Recognition.');
+                    return null;
+                }
+
+                const rec = new SR();
+                rec.lang = currentLang;
+                rec.continuous = true;
+                rec.interimResults = true;
+                rec.maxAlternatives = 1;
+
+                rec.onstart = function() {
+                    isListening = true;
+                    micBtn.classList.add('listening');
+                    micBtn.classList.remove('error');
+                    appContainer.classList.add('listening');
+                    if (wakeMode) {
+                        setStatus('Wake mode', 'wake');
+                        updateWakeIndicator('🔊 listening...', true);
+                    } else {
+                        setStatus('Listening...', 'active');
+                    }
+                };
+
+                rec.onerror = function(event) {
+                    console.warn('[SR] error:', event.error);
+                    if (event.error === 'not-allowed') {
+                        setStatus('Mic denied', 'error');
+                        speak('Please allow microphone access.', 0.9);
+                        micBtn.classList.add('error');
+                    } else if (event.error === 'no-speech') {
+                        setStatus('No speech', 'error');
+                        if (wakeMode) setStatus('Wake mode', 'wake');
+                    } else if (event.error === 'audio-capture') {
+                        setStatus('No mic', 'error');
+                        speak('No microphone found.', 0.85);
+                        micBtn.classList.add('error');
+                    } else {
+                        setStatus('Error', 'error');
+                    }
+                    micBtn.classList.remove('listening');
+                    appContainer.classList.remove('listening');
+                    isListening = false;
+                    if (wakeMode) updateWakeIndicator('🔇 error', false);
+                };
+
+                rec.onend = function() {
+                    if (isListening) {
+                        if (wakeMode) {
+                            try { rec.start(); } catch (_) {}
+                        } else {
+                            micBtn.classList.remove('listening');
+                            appContainer.classList.remove('listening');
+                            isListening = false;
+                            setStatus('Standby', '');
+                        }
+                    }
+                };
+
+                rec.onresult = function(event) {
+                    let finalText = '';
+                    let interimText = '';
+                    for (let i = event.resultIndex; i < event.results.length; i++) {
+                        const result = event.results[i];
+                        const transcript = result[0].transcript.trim();
+                        if (result.isFinal) finalText = transcript;
+                        else interimText = transcript;
+                    }
+                    const text = finalText || interimText;
+
+                    if (text) {
+                        if (wakeMode) {
+                            if (finalText) {
+                                processWakeAndCommand(finalText);
+                                if (finalText.toLowerCase().includes(WAKE_WORD)) {
+                                    addMessage('user', finalText);
+                                }
+                            } else {
+                                if (text.toLowerCase().includes(WAKE_WORD)) {
+                                    updateWakeIndicator('🔊 wake word detected!', true);
+                                    setStatus('Wake mode', 'wake');
+                                } else if (wakeDetected) {
+                                    updateWakeIndicator('🗣️ hearing command...', true);
+                                }
+                            }
+                        } else {
+                            if (finalText) {
+                                addMessage('user', finalText);
+                                const command = parseCommand(finalText);
+                                executeCommand(command);
+                                if (isListening) {
+                                    try { rec.stop(); } catch (_) {}
+                                    micBtn.classList.remove('listening');
+                                    appContainer.classList.remove('listening');
+                                    isListening = false;
+                                    setStatus('Standby', '');
+                                }
+                            }
+                        }
+                    }
+                };
+
+                return rec;
+            }
+
+            // ================================================================
+            //  TOGGLE MIC
+            // ================================================================
+            function toggleMic() {
+                if (wakeMode) {
+                    if (isListening) {
+                        if (recognition) { try { recognition.stop(); } catch (_) {} }
+                        isListening = false;
+                        micBtn.classList.remove('listening');
+                        appContainer.classList.remove('listening');
+                        setStatus('Standby', '');
+                        updateWakeIndicator('🔇 paused', false);
+                    } else {
+                        if (!recognition) {
+                            recognition = initSpeechRecognition();
+                            if (!recognition) return;
+                        }
+                        try { recognition.start(); } catch (err) { console.warn(err); }
+                    }
+                    return;
+                }
+
+                // manual mode
+                if (isListening) {
+                    if (recognition) { try { recognition.stop(); } catch (_) {} }
+                    isListening = false;
+                    micBtn.classList.remove('listening');
+                    appContainer.classList.remove('listening');
+                    setStatus('Standby', '');
+                    return;
+                }
+
+                if (!recognition) {
+                    recognition = initSpeechRecognition();
+                    if (!recognition) return;
+                }
+                try { recognition.start(); } catch (err) {
+                    console.warn(err);
+                    if (err.message && err.message.includes('already started')) {
+                        try { recognition.abort(); } catch (_) {}
+                        setTimeout(() => { try { recognition.start(); } catch (e2) { console.warn(e2); } }, 250);
+                    } else {
+                        setStatus('Error starting', 'error');
+                        speak('Could not start microphone.', 0.85);
+                    }
+                }
+            }
+
+            // ================================================================
+            //  MODE TOGGLE
+            // ================================================================
+            function toggleMode() {
+                wakeMode = !wakeMode;
+                modeToggle.classList.toggle('active', wakeMode);
+                modeLabelManual.classList.toggle('active', !wakeMode);
+                modeLabelWake.classList.toggle('active', wakeMode);
                 wakeDetected = false;
                 commandBuffer = '';
-                updateWakeIndicator('🎤 command executed', false);
-                setStatus('Done ✓', 'success');
-                setTimeout(() => setStatus('Wake mode', 'wake'), 1200);
-              } else {
-                // Keep buffering (we'll wait for more speech)
-                // But we need to avoid accumulating forever, so we can set a timeout
-                // We'll use a simple reset if too long
-                clearTimeout(window.wakeTimeout);
-                window.wakeTimeout = setTimeout(() => {
-                  if (wakeDetected) {
-                    // No command heard, reset
-                    wakeDetected = false;
-                    commandBuffer = '';
-                    updateWakeIndicator('🔇 timeout', false);
-                    setStatus('Wake mode', 'wake');
-                    addMessage('assistant', '⏳ No command heard, try again.');
-                    speak('I didn\'t hear a command.', 0.85);
-                  }
-                }, 3000);
-              }
-            }
-          } else {
-            // No wake word and not waiting – ignore (in wake mode)
-            // But we can show that we're listening
-            updateWakeIndicator('🔊 listening...', true);
-            setStatus('Wake mode', 'wake');
-          }
-        }
-      }
+                updateWakeIndicator(wakeMode ? '🔊 listening...' : '🔇 idle', wakeMode);
 
-      // ================================================================
-      //  WEB SPEECH API
-      // ================================================================
-      function initSpeechRecognition() {
-        const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
-        if (!SR) {
-          setStatus('Not supported', 'error');
-          micBtn.disabled = true;
-          micBtn.title = 'Voice not supported';
-          addMessage('assistant', '⚠️ Your browser does not support Speech Recognition.');
-          return null;
-        }
-
-        const rec = new SR();
-        rec.lang = 'en-US';
-        rec.continuous = true; // keep listening
-        rec.interimResults = true;
-        rec.maxAlternatives = 1;
-
-        rec.onstart = function() {
-          isListening = true;
-          micBtn.classList.add('listening');
-          micBtn.classList.remove('error');
-          appContainer.classList.add('listening');
-          if (wakeMode) {
-            setStatus('Wake mode', 'wake');
-            updateWakeIndicator('🔊 listening...', true);
-          } else {
-            setStatus('Listening...', 'active');
-          }
-        };
-
-        rec.onerror = function(event) {
-          console.warn('[SR] error:', event.error);
-          if (event.error === 'not-allowed') {
-            setStatus('Mic denied', 'error');
-            speak('Please allow microphone access.', 0.9);
-            micBtn.classList.add('error');
-          } else if (event.error === 'no-speech') {
-            setStatus('No speech', 'error');
-            // In wake mode we don't want to spam, just reset
-            if (wakeMode) {
-              setStatus('Wake mode', 'wake');
-            }
-          } else if (event.error === 'audio-capture') {
-            setStatus('No mic', 'error');
-            speak('No microphone found.', 0.85);
-            micBtn.classList.add('error');
-          } else {
-            setStatus('Error', 'error');
-          }
-          micBtn.classList.remove('listening');
-          appContainer.classList.remove('listening');
-          isListening = false;
-          if (wakeMode) {
-            updateWakeIndicator('🔇 error', false);
-          }
-        };
-
-        rec.onend = function() {
-          // In continuous mode, this may not happen unless stopped or error
-          if (isListening) {
-            // If we are in wake mode and not manually stopped, we might want to restart
-            if (wakeMode) {
-              // The recognition may have ended due to a temporary issue, restart
-              try {
-                rec.start();
-              } catch (_) {}
-            } else {
-              micBtn.classList.remove('listening');
-              appContainer.classList.remove('listening');
-              isListening = false;
-              setStatus('Standby', '');
-            }
-          }
-        };
-
-        rec.onresult = function(event) {
-          let finalText = '';
-          let interimText = '';
-
-          for (let i = event.resultIndex; i < event.results.length; i++) {
-            const result = event.results[i];
-            const transcript = result[0].transcript.trim();
-            if (result.isFinal) {
-              finalText = transcript;
-            } else {
-              interimText = transcript;
-            }
-          }
-
-          // Use final if available, else interim for real-time feedback
-          const text = finalText || interimText;
-
-          if (text) {
-            if (wakeMode) {
-              // In wake mode, we show interim in the chat as user input? We'll show only final to avoid clutter.
-              // But we can show the wake indicator status.
-              if (finalText) {
-                // If final, process
-                processWakeAndCommand(finalText);
-                // Also add user message if it contains wake word or we have a command
-                if (finalText.toLowerCase().includes(WAKE_WORD)) {
-                  addMessage('user', finalText);
-                } else if (wakeDetected && commandBuffer) {
-                  // we might want to show the accumulated command later
-                }
-              } else {
-                // Interim – just update indicator
-                if (text.toLowerCase().includes(WAKE_WORD)) {
-                  updateWakeIndicator('🔊 wake word detected!', true);
-                  setStatus('Wake mode', 'wake');
-                } else if (wakeDetected) {
-                  updateWakeIndicator('🗣️ hearing command...', true);
-                }
-              }
-            } else {
-              // Manual mode: process every final result
-              if (finalText) {
-                addMessage('user', finalText);
-                const command = parseCommand(finalText);
-                executeCommand(command);
-                // Stop listening after command if not continuous? But we are continuous now.
-                // In manual mode, we want to stop after a command (like push-to-talk)
-                // We'll stop after processing
                 if (isListening) {
-                  try { rec.stop(); } catch (_) {}
-                  micBtn.classList.remove('listening');
-                  appContainer.classList.remove('listening');
-                  isListening = false;
-                  setStatus('Standby', '');
+                    if (recognition) { try { recognition.stop(); } catch (_) {} }
+                    isListening = false;
+                    micBtn.classList.remove('listening');
+                    appContainer.classList.remove('listening');
+                    setStatus('Standby', '');
+                    if (wakeMode) {
+                        setTimeout(() => {
+                            if (!recognition) {
+                                recognition = initSpeechRecognition();
+                                if (!recognition) return;
+                            }
+                            try { recognition.start(); } catch (_) {}
+                        }, 300);
+                    }
+                } else {
+                    setStatus(wakeMode ? 'Wake mode' : 'Standby', wakeMode ? 'wake' : '');
                 }
-              }
             }
-          }
-        };
 
-        return rec;
-      }
-
-      // ================================================================
-      //  TOGGLE MIC (Manual)
-      // ================================================================
-      function toggleMic() {
-        if (wakeMode) {
-          // In wake mode, we don't want to stop/start manually; we keep continuous
-          // But clicking the mic can toggle the entire listening state
-          if (isListening) {
-            // Stop everything
-            if (recognition) {
-              try { recognition.stop(); } catch (_) {}
+            // ================================================================
+            //  LANGUAGE CHANGE
+            // ================================================================
+            function changeLanguage(lang) {
+                currentLang = lang;
+                // restart recognition if active
+                if (isListening) {
+                    if (recognition) {
+                        try { recognition.stop(); } catch (_) {}
+                    }
+                    isListening = false;
+                    micBtn.classList.remove('listening');
+                    appContainer.classList.remove('listening');
+                    setStatus('Standby', '');
+                    // restart after a moment
+                    setTimeout(() => {
+                        if (!recognition) {
+                            recognition = initSpeechRecognition();
+                            if (!recognition) return;
+                        }
+                        recognition.lang = currentLang;
+                        if (wakeMode) {
+                            try { recognition.start(); } catch (_) {}
+                        }
+                    }, 300);
+                } else {
+                    // just update recognition lang for next start
+                    if (recognition) {
+                        recognition.lang = currentLang;
+                    }
+                    setStatus(wakeMode ? 'Wake mode' : 'Standby', wakeMode ? 'wake' : '');
+                }
+                // update speech synthesis language
+                speak(`Language changed to ${lang}`, 0.9);
             }
-            isListening = false;
-            micBtn.classList.remove('listening');
-            appContainer.classList.remove('listening');
-            setStatus('Standby', '');
-            updateWakeIndicator('🔇 paused', false);
-          } else {
-            // Start
-            if (!recognition) {
-              recognition = initSpeechRecognition();
-              if (!recognition) return;
-            }
-            try {
-              recognition.start();
-            } catch (err) {
-              console.warn(err);
-            }
-          }
-          return;
-        }
 
-        // Manual mode: toggle on/off (push-to-talk)
-        if (isListening) {
-          if (recognition) {
-            try { recognition.stop(); } catch (_) {}
-          }
-          isListening = false;
-          micBtn.classList.remove('listening');
-          appContainer.classList.remove('listening');
-          setStatus('Standby', '');
-          return;
-        }
+            // ================================================================
+            //  INIT
+            // ================================================================
+            function init() {
+                const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+                if (!SR) {
+                    setStatus('Not supported', 'error');
+                    micBtn.disabled = true;
+                    micBtn.title = 'Voice not supported';
+                    addMessage('assistant', '⚠️ Browser does not support Speech Recognition. Use Chrome, Edge, or Opera.');
+                    return;
+                }
 
-        if (!recognition) {
-          recognition = initSpeechRecognition();
-          if (!recognition) return;
-        }
-        try {
-          recognition.start();
-        } catch (err) {
-          console.warn(err);
-          if (err.message && err.message.includes('already started')) {
-            try { recognition.abort(); } catch (_) {}
-            setTimeout(() => { try { recognition.start(); } catch (e2) { console.warn(e2); } }, 250);
-          } else {
-            setStatus('Error starting', 'error');
-            speak('Could not start microphone.', 0.85);
-          }
-        }
-      }
-
-      // ================================================================
-      //  MODE TOGGLE
-      // ================================================================
-      function toggleMode() {
-        wakeMode = !wakeMode;
-        modeToggle.classList.toggle('active', wakeMode);
-        modeLabelManual.classList.toggle('active', !wakeMode);
-        modeLabelWake.classList.toggle('active', wakeMode);
-
-        // Reset wake state
-        wakeDetected = false;
-        commandBuffer = '';
-        updateWakeIndicator(wakeMode ? '🔊 listening...' : '🔇 idle', wakeMode);
-
-        // If currently listening, restart recognition with new mode
-        if (isListening) {
-          if (recognition) {
-            try { recognition.stop(); } catch (_) {}
-          }
-          isListening = false;
-          micBtn.classList.remove('listening');
-          appContainer.classList.remove('listening');
-          setStatus('Standby', '');
-          // Restart automatically if wake mode
-          if (wakeMode) {
-            setTimeout(() => {
-              if (!recognition) {
                 recognition = initSpeechRecognition();
                 if (!recognition) return;
-              }
-              try { recognition.start(); } catch (_) {}
-            }, 300);
-          }
-        } else {
-          // If not listening, just update status
-          if (wakeMode) {
-            setStatus('Wake mode', 'wake');
-          } else {
-            setStatus('Standby', '');
-          }
-        }
-      }
 
-      // ================================================================
-      //  INIT
-      // ================================================================
-      function init() {
-        const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
-        if (!SR) {
-          setStatus('Not supported', 'error');
-          micBtn.disabled = true;
-          micBtn.title = 'Voice not supported';
-          addMessage('assistant', '⚠️ Browser does not support Speech Recognition. Use Chrome, Edge, or Opera.');
-          return;
-        }
+                micBtn.addEventListener('click', toggleMic);
+                micBtn.addEventListener('keydown', function(e) {
+                    if (e.key === ' ' || e.key === 'Enter') { e.preventDefault();
+                        toggleMic(); }
+                });
 
-        recognition = initSpeechRecognition();
-        if (!recognition) return;
+                modeToggle.addEventListener('click', toggleMode);
 
-        micBtn.addEventListener('click', toggleMic);
-        micBtn.addEventListener('keydown', function(e) {
-          if (e.key === ' ' || e.key === 'Enter') { e.preventDefault();
-            toggleMic(); }
-        });
+                langSelect.addEventListener('change', function() {
+                    changeLanguage(this.value);
+                });
 
-        // Mode toggle
-        modeToggle.addEventListener('click', toggleMode);
+                document.addEventListener('keydown', function(e) {
+                    if (e.ctrlKey && e.shiftKey && (e.key === 'm' || e.key === 'M')) {
+                        e.preventDefault();
+                        toggleMic();
+                    }
+                });
 
-        // Keyboard shortcut: Ctrl+Shift+M toggles mic
-        document.addEventListener('keydown', function(e) {
-          if (e.ctrlKey && e.shiftKey && (e.key === 'm' || e.key === 'M')) {
-            e.preventDefault();
-            toggleMic();
-          }
-        });
+                setStatus('Standby', '');
+                addMessage('assistant', '👋 Say "Hey Darkranks" (wake mode) or tap the mic.');
+                updateCommandDisplay(null);
+                updateWakeIndicator('🔇 idle', false);
 
-        setStatus('Standby', '');
-        addMessage('assistant', '👋 Say "Hey Darkranks" (wake mode) or tap the mic.');
-        updateCommandDisplay(null);
-        updateWakeIndicator('🔇 idle', false);
+                // default wake mode off
+                wakeMode = false;
+                modeToggle.classList.remove('active');
+                modeLabelManual.classList.add('active');
+                modeLabelWake.classList.remove('active');
 
-        // Start in wake mode by default? We'll start in manual, user can switch.
-        // But we can start with wake mode on if user wants. Let's default to manual.
-        // We'll set the toggle to off.
-        modeToggle.classList.remove('active');
-        modeLabelManual.classList.add('active');
-        modeLabelWake.classList.remove('active');
-        wakeMode = false;
+                console.log('[Darkranks] Ready.');
+            }
 
-        console.log('[Darkranks] Ready. Toggle wake mode or press mic.');
-      }
+            if (document.readyState === 'loading') {
+                document.addEventListener('DOMContentLoaded', init);
+            } else {
+                init();
+            }
 
-      if (document.readyState === 'loading') {
-        document.addEventListener('DOMContentLoaded', init);
-      } else {
-        init();
-      }
-
-    })();
-  </script>
+        })();
+    </script>
 </body>
 </html>
