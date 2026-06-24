@@ -24,12 +24,12 @@
 
     .assistant-container {
       width: 100%;
-      max-width: 720px;
+      max-width: 820px;
       background: rgba(18, 26, 45, 0.85);
       backdrop-filter: blur(28px);
       -webkit-backdrop-filter: blur(28px);
       border-radius: 44px;
-      padding: 32px 28px 28px;
+      padding: 28px 24px 24px;
       border: 1px solid rgba(255, 255, 255, 0.05);
       box-shadow: 0 40px 100px rgba(0, 0, 0, 0.8), inset 0 1px 0 rgba(255, 255, 255, 0.04);
       transition: box-shadow 0.3s ease;
@@ -44,7 +44,9 @@
       display: flex;
       align-items: center;
       justify-content: space-between;
-      margin-bottom: 18px;
+      margin-bottom: 14px;
+      flex-wrap: wrap;
+      gap: 8px;
     }
 
     .header h1 {
@@ -107,15 +109,15 @@
       }
     }
 
-    /* --- CHAT LOG (conversation) --- */
+    /* --- CHAT LOG --- */
     .chat-log {
-      background: rgba(0, 0, 0, 0.3);
-      border-radius: 24px;
-      padding: 18px 16px;
-      min-height: 240px;
-      max-height: 340px;
+      background: rgba(0, 0, 0, 0.25);
+      border-radius: 20px;
+      padding: 14px 12px;
+      min-height: 150px;
+      max-height: 220px;
       overflow-y: auto;
-      margin-bottom: 18px;
+      margin-bottom: 12px;
       border: 1px solid rgba(255, 255, 255, 0.03);
       scroll-behavior: smooth;
     }
@@ -127,21 +129,19 @@
       background: transparent;
     }
     .chat-log::-webkit-scrollbar-thumb {
-      background: rgba(255, 255, 255, 0.15);
+      background: rgba(255, 255, 255, 0.12);
       border-radius: 12px;
     }
 
     .chat-message {
       display: flex;
       flex-direction: column;
-      margin-bottom: 14px;
-      animation: fadeInUp 0.3s ease both;
+      margin-bottom: 10px;
+      animation: fadeInUp 0.25s ease both;
     }
-
     .chat-message:last-child {
       margin-bottom: 0;
     }
-
     .chat-message.user {
       align-items: flex-end;
     }
@@ -150,10 +150,10 @@
     }
 
     .bubble {
-      max-width: 85%;
-      padding: 10px 16px;
-      border-radius: 20px;
-      font-size: 15px;
+      max-width: 88%;
+      padding: 8px 14px;
+      border-radius: 18px;
+      font-size: 14px;
       line-height: 1.5;
       word-break: break-word;
       color: rgba(255, 255, 255, 0.9);
@@ -161,41 +161,40 @@
 
     .chat-message.user .bubble {
       background: linear-gradient(135deg, #2a3b6b, #1f2a4a);
-      border-bottom-right-radius: 6px;
+      border-bottom-right-radius: 5px;
       border: 1px solid rgba(255, 255, 255, 0.05);
     }
 
     .chat-message.assistant .bubble {
       background: rgba(255, 255, 255, 0.06);
-      border-bottom-left-radius: 6px;
+      border-bottom-left-radius: 5px;
       border: 1px solid rgba(255, 255, 255, 0.04);
       color: rgba(255, 255, 255, 0.85);
     }
 
     .chat-message .time {
-      font-size: 9px;
-      color: rgba(255, 255, 255, 0.15);
-      margin: 4px 8px 0;
-      letter-spacing: 0.4px;
+      font-size: 8px;
+      color: rgba(255, 255, 255, 0.12);
+      margin: 3px 10px 0;
+      letter-spacing: 0.3px;
     }
-
     .chat-message.user .time {
       text-align: right;
     }
 
     .empty-chat {
-      color: rgba(255, 255, 255, 0.15);
+      color: rgba(255, 255, 255, 0.12);
       font-style: italic;
       font-weight: 300;
       text-align: center;
-      padding: 20px 0;
-      font-size: 14px;
+      padding: 16px 0;
+      font-size: 13px;
     }
 
     @keyframes fadeInUp {
       from {
         opacity: 0;
-        transform: translateY(12px);
+        transform: translateY(10px);
       }
       to {
         opacity: 1;
@@ -203,22 +202,82 @@
       }
     }
 
+    /* --- COMMAND OUTPUT (JSON RESULT) --- */
+    .command-panel {
+      background: rgba(0, 0, 0, 0.4);
+      border-radius: 16px;
+      padding: 12px 16px;
+      margin-bottom: 14px;
+      border: 1px solid rgba(255, 255, 255, 0.04);
+      transition: border-color 0.2s;
+    }
+
+    .command-panel .label {
+      font-size: 10px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.8px;
+      color: rgba(255, 255, 255, 0.15);
+      margin-bottom: 4px;
+    }
+
+    .command-panel .json-output {
+      font-family: 'JetBrains Mono', 'Fira Code', monospace;
+      font-size: 13px;
+      color: rgba(255, 255, 255, 0.7);
+      white-space: pre-wrap;
+      word-break: break-word;
+      line-height: 1.6;
+      min-height: 28px;
+      max-height: 110px;
+      overflow-y: auto;
+      scrollbar-width: thin;
+    }
+
+    .command-panel .json-output::-webkit-scrollbar {
+      width: 3px;
+    }
+    .command-panel .json-output::-webkit-scrollbar-thumb {
+      background: rgba(255, 255, 255, 0.1);
+      border-radius: 8px;
+    }
+
+    .command-panel .json-output .empty {
+      color: rgba(255, 255, 255, 0.15);
+      font-style: italic;
+      font-weight: 300;
+      font-family: Inter, sans-serif;
+    }
+
+    .command-panel .json-output .key {
+      color: #fbbf24;
+    }
+    .command-panel .json-output .string {
+      color: #34d399;
+    }
+    .command-panel .json-output .number {
+      color: #60a5fa;
+    }
+    .command-panel .json-output .boolean {
+      color: #c084fc;
+    }
+
     /* --- MIC BUTTON --- */
     .mic-wrapper {
       display: flex;
       justify-content: center;
-      margin: 6px 0 18px;
+      margin: 4px 0 14px;
     }
 
     .mic-btn {
-      width: 100px;
-      height: 100px;
+      width: 92px;
+      height: 92px;
       border-radius: 50%;
       border: none;
       background: linear-gradient(135deg, #1a2340, #0f1628);
       box-shadow: 0 12px 40px rgba(0, 0, 0, 0.6), inset 0 1px 0 rgba(255, 255, 255, 0.06);
       color: #fff;
-      font-size: 46px;
+      font-size: 42px;
       cursor: pointer;
       transition: all 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
       display: flex;
@@ -232,7 +291,6 @@
       transform: scale(1.04);
       background: linear-gradient(135deg, #1f2a4a, #141d32);
     }
-
     .mic-btn:active {
       transform: scale(0.92);
     }
@@ -277,20 +335,21 @@
     .quick-tips {
       display: flex;
       flex-wrap: wrap;
-      gap: 8px;
-      margin-top: 4px;
+      gap: 6px;
       justify-content: center;
+      margin-top: 2px;
     }
 
     .quick-tips span {
-      font-size: 11px;
-      padding: 4px 12px;
+      font-size: 10px;
+      padding: 3px 10px;
       border-radius: 100px;
       background: rgba(255, 255, 255, 0.03);
-      color: rgba(255, 255, 255, 0.2);
+      color: rgba(255, 255, 255, 0.18);
       border: 1px solid rgba(255, 255, 255, 0.04);
       user-select: none;
       transition: all 0.2s;
+      white-space: nowrap;
     }
 
     .quick-tips span:hover {
@@ -298,39 +357,51 @@
       color: rgba(255, 255, 255, 0.4);
     }
 
-    /* --- RESPONSIVE --- */
-    @media (max-width: 520px) {
+    /* --- RESPONSIVE TWEAKS --- */
+    @media (max-width: 600px) {
       .assistant-container {
-        padding: 20px 14px 18px;
+        padding: 18px 12px 16px;
         border-radius: 32px;
       }
       .mic-btn {
-        width: 80px;
-        height: 80px;
-        font-size: 36px;
+        width: 76px;
+        height: 76px;
+        font-size: 34px;
       }
       .chat-log {
-        min-height: 160px;
-        max-height: 250px;
-        padding: 12px 10px;
+        min-height: 120px;
+        max-height: 170px;
+        padding: 10px 8px;
       }
       .bubble {
-        font-size: 14px;
-        padding: 8px 12px;
+        font-size: 13px;
+        padding: 6px 12px;
       }
       .header h1 {
         font-size: 17px;
       }
+      .command-panel .json-output {
+        font-size: 12px;
+        max-height: 80px;
+      }
+      .command-panel {
+        padding: 8px 12px;
+      }
     }
 
-    @media (max-width: 380px) {
+    @media (max-width: 400px) {
       .mic-btn {
-        width: 68px;
-        height: 68px;
+        width: 66px;
+        height: 66px;
         font-size: 28px;
       }
       .bubble {
-        font-size: 13px;
+        font-size: 12px;
+        padding: 5px 10px;
+      }
+      .quick-tips span {
+        font-size: 9px;
+        padding: 2px 8px;
       }
     }
   </style>
@@ -346,7 +417,13 @@
 
     <!-- CHAT LOG -->
     <div class="chat-log" id="chatLog">
-      <div class="empty-chat">✨ Tap the mic and speak to me...</div>
+      <div class="empty-chat">✨ Tap the mic and speak...</div>
+    </div>
+
+    <!-- COMMAND JSON OUTPUT -->
+    <div class="command-panel">
+      <div class="label">📦 parsed command (result)</div>
+      <div class="json-output" id="jsonOutput"><span class="empty">Waiting for your voice...</span></div>
     </div>
 
     <!-- MIC -->
@@ -362,7 +439,7 @@
       <span>🎵 "Play Shape of You"</span>
       <span>🔍 "Search AI news"</span>
       <span>⏰ "What time is it?"</span>
-      <span>🧮 "Calculate 25 * 8"</span>
+      <span>🧮 "25 * 8"</span>
       <span>🏠 "Go home"</span>
     </div>
   </div>
@@ -377,6 +454,7 @@
       const micBtn = document.getElementById('micBtn');
       const statusBadge = document.getElementById('statusBadge');
       const chatLog = document.getElementById('chatLog');
+      const jsonOutput = document.getElementById('jsonOutput');
       const appContainer = document.getElementById('appContainer');
 
       // ================================================================
@@ -384,145 +462,17 @@
       // ================================================================
       let isListening = false;
       let recognition = null;
-      let context = {
-        lastTarget: null, // e.g., 'youtube', 'google'
+      const context = {
+        lastTarget: null,
         lastQuery: null,
         lastAction: null,
         lastFullCommand: null,
-        chatHistory: [] // for future advanced memory
       };
 
       // ================================================================
-      //  SMART RESPONSE GENERATOR (Human-like, varied)
+      //  UI HELPERS
       // ================================================================
-      const responseTemplates = {
-        greeting: [
-          "Hey there! How can I assist you today?",
-          "Hello! I'm all ears — what do you need?",
-          "Hi! Ready to take your command.",
-          "Good to see you! What's on your mind?"
-        ],
-        open: [
-          "Sure thing, opening {target} right now!",
-          "On it — launching {target} for you.",
-          "Here we go, loading {target}...",
-          "Alright, {target} is opening as we speak."
-        ],
-        play: [
-          "Awesome, playing {query} {platform}.",
-          "Here comes {query} — enjoy!",
-          "Turning up the volume for {query}.",
-          "Alright, let's listen to {query}."
-        ],
-        search: [
-          "Searching the web for {query}...",
-          "Looking up {query} for you.",
-          "I'll find the best results for {query}.",
-          "Got it, searching {query} now."
-        ],
-        scroll: [
-          "Scrolling {direction}.",
-          "Moving {direction} as you wish.",
-          "Let's go {direction}."
-        ],
-        navigate: [
-          "Navigating to {target}.",
-          "Taking you to {target} now.",
-          "Alright, heading to {target}."
-        ],
-        system: {
-          refresh: ["Refreshing the page for you.", "Reloading, just a moment."],
-          stop: ["Stopping voice input.", "Okay, I've stopped listening."],
-          clear: ["Clearing the conversation.", "Chat cleared, fresh start."]
-        },
-        time: [
-          "The current time is {time}.",
-          "It's exactly {time} right now.",
-          "Just checked — it's {time}."
-        ],
-        math: [
-          "The answer is {result}.",
-          "That equals {result}.",
-          "I calculate {result}."
-        ],
-        unknown: [
-          "Hmm, I didn't quite catch that. Could you rephrase?",
-          "I'm not sure what you meant. Try saying it differently?",
-          "Sorry, I didn't understand that command.",
-          "I didn't get that. Can you say it again?"
-        ],
-        default_reply: [
-          "Done!",
-          "All set!",
-          "Command executed.",
-          "Right away!"
-        ]
-      };
-
-      function pickRandom(arr) {
-        return arr[Math.floor(Math.random() * arr.length)];
-      }
-
-      function generateResponse(action, data = {}) {
-        let template = '';
-        let text = '';
-
-        switch (action) {
-          case 'greeting':
-            template = pickRandom(responseTemplates.greeting);
-            break;
-          case 'open':
-            template = pickRandom(responseTemplates.open);
-            text = template.replace(/{target}/g, data.target || 'the page');
-            break;
-          case 'play':
-            let platform = data.target ? `on ${data.target}` : '';
-            template = pickRandom(responseTemplates.play);
-            text = template.replace(/{query}/g, data.query || 'music').replace(/{platform}/g, platform);
-            break;
-          case 'search':
-            template = pickRandom(responseTemplates.search);
-            text = template.replace(/{query}/g, data.query || 'that');
-            break;
-          case 'scroll':
-            template = pickRandom(responseTemplates.scroll);
-            text = template.replace(/{direction}/g, data.direction || 'down');
-            break;
-          case 'navigate':
-            template = pickRandom(responseTemplates.navigate);
-            text = template.replace(/{target}/g, data.target || 'home');
-            break;
-          case 'system':
-            if (data.command === 'refresh') template = pickRandom(responseTemplates.system.refresh);
-            else if (data.command === 'stop') template = pickRandom(responseTemplates.system.stop);
-            else if (data.command === 'clear') template = pickRandom(responseTemplates.system.clear);
-            else template = pickRandom(responseTemplates.default_reply);
-            text = template;
-            break;
-          case 'time':
-            const now = new Date();
-            const timeStr = now.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
-            template = pickRandom(responseTemplates.time);
-            text = template.replace(/{time}/g, timeStr);
-            break;
-          case 'math':
-            template = pickRandom(responseTemplates.math);
-            text = template.replace(/{result}/g, data.result || '0');
-            break;
-          case 'unknown':
-          default:
-            template = pickRandom(responseTemplates.unknown);
-            text = template;
-            break;
-        }
-        return text || pickRandom(responseTemplates.default_reply);
-      }
-
-      // ================================================================
-      //  CHAT UI
-      // ================================================================
-      function addMessage(type, text, isFinal = true) {
-        // Remove empty placeholder if exists
+      function addMessage(type, text) {
         const empty = chatLog.querySelector('.empty-chat');
         if (empty) empty.remove();
 
@@ -549,8 +499,23 @@
         if (type) statusBadge.classList.add(type);
       }
 
+      function updateCommandDisplay(command) {
+        if (!command || Object.keys(command).length === 0) {
+          jsonOutput.innerHTML = '<span class="empty">Waiting for your voice...</span>';
+          return;
+        }
+        // pretty print with basic syntax highlighting
+        const jsonStr = JSON.stringify(command, null, 2);
+        const highlighted = jsonStr
+          .replace(/"([^"]+)":/g, '<span class="key">"$1"</span>:')
+          .replace(/: "([^"]+)"/g, ': <span class="string">"$1"</span>')
+          .replace(/: (\d+\.?\d*)/g, ': <span class="number">$1</span>')
+          .replace(/: (true|false)/g, ': <span class="boolean">$1</span>');
+        jsonOutput.innerHTML = highlighted;
+      }
+
       // ================================================================
-      //  SPEECH OUTPUT (with cancel to avoid overlap)
+      //  SPEECH SYNTHESIS
       // ================================================================
       function speak(text, rate = 0.92) {
         if (!window.speechSynthesis) return;
@@ -564,7 +529,111 @@
       }
 
       // ================================================================
-      //  🧠 SUPER SMART COMMAND ENGINE (Context-Aware NLU)
+      //  RESPONSE GENERATOR (human-like variants)
+      // ================================================================
+      const templates = {
+        greeting: [
+          "Hey there! How can I help?",
+          "Hello! I'm all ears.",
+          "Hi! Ready to take your command.",
+          "Good to see you! What's on your mind?"
+        ],
+        open: [
+          "Sure, opening {target} right now!",
+          "Launching {target} for you.",
+          "Here we go — {target} is opening."
+        ],
+        play: [
+          "Playing {query} {platform}.",
+          "Here comes {query} — enjoy!",
+          "Alright, let's listen to {query}."
+        ],
+        search: [
+          "Searching for {query}...",
+          "Looking up {query} for you.",
+          "I'll find the best results for {query}."
+        ],
+        scroll: [
+          "Scrolling {direction}.",
+          "Moving {direction} as you wish."
+        ],
+        navigate: [
+          "Navigating to {target}.",
+          "Taking you to {target} now."
+        ],
+        system: {
+          refresh: ["Refreshing the page.", "Reloading, just a moment."],
+          stop: ["Stopping voice input.", "Okay, I've stopped listening."],
+          clear: ["Clearing the conversation.", "Chat cleared, fresh start."]
+        },
+        time: [
+          "The current time is {time}.",
+          "It's exactly {time} right now."
+        ],
+        math: [
+          "The answer is {result}.",
+          "That equals {result}.",
+          "I calculate {result}."
+        ],
+        unknown: [
+          "Hmm, I didn't quite catch that. Could you rephrase?",
+          "I'm not sure what you meant. Try saying it differently.",
+          "Sorry, I didn't understand that command."
+        ],
+        default_reply: ["Done!", "All set!", "Command executed."]
+      };
+
+      function pick(arr) { return arr[Math.floor(Math.random() * arr.length)]; }
+
+      function generateResponse(action, data = {}) {
+        let raw = '';
+        switch (action) {
+          case 'greeting':
+            raw = pick(templates.greeting);
+            break;
+          case 'open':
+            raw = pick(templates.open).replace(/{target}/g, data.target || 'the page');
+            break;
+          case 'play': {
+            const plat = data.target ? `on ${data.target}` : '';
+            raw = pick(templates.play).replace(/{query}/g, data.query || 'music').replace(/{platform}/g, plat);
+            break;
+          }
+          case 'search':
+            raw = pick(templates.search).replace(/{query}/g, data.query || 'that');
+            break;
+          case 'scroll':
+            raw = pick(templates.scroll).replace(/{direction}/g, data.direction || 'down');
+            break;
+          case 'navigate':
+            raw = pick(templates.navigate).replace(/{target}/g, data.target || 'home');
+            break;
+          case 'system': {
+            const cmd = data.command || 'unknown';
+            if (cmd === 'refresh') raw = pick(templates.system.refresh);
+            else if (cmd === 'stop') raw = pick(templates.system.stop);
+            else if (cmd === 'clear') raw = pick(templates.system.clear);
+            else raw = pick(templates.default_reply);
+            break;
+          }
+          case 'time': {
+            const now = new Date();
+            const t = now.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+            raw = pick(templates.time).replace(/{time}/g, t);
+            break;
+          }
+          case 'math': {
+            raw = pick(templates.math).replace(/{result}/g, data.result || '0');
+            break;
+          }
+          default:
+            raw = pick(templates.unknown);
+        }
+        return raw || pick(templates.default_reply);
+      }
+
+      // ================================================================
+      //  🧠 SUPER SMART COMMAND ENGINE
       // ================================================================
       function parseCommand(raw) {
         if (!raw || typeof raw !== 'string') {
@@ -572,30 +641,28 @@
         }
 
         let input = raw.toLowerCase().trim();
-        // Normalize filler words
         input = input.replace(/\b(please|can you|could you|would you|i want to|i need to|let's|lets|maybe|just|kind of|sort of|actually|basically|literally)\b/g, '')
-          .replace(/\s+/g, ' ')
-          .trim();
+          .replace(/\s+/g, ' ').trim();
 
-        // --- 1) GREETING ---
+        // 1) GREETING
         if (/^(hi|hello|hey|howdy|good morning|good afternoon|good evening|yo|sup|what's up|hola|hey there)/i.test(input) &&
           input.length < 30) {
           return { action: 'greeting', confidence: 0.98 };
         }
 
-        // --- 2) TIME ---
+        // 2) TIME
         if (/\b(time|clock|what'?s the time|current time|tell me the time)\b/i.test(input)) {
           return { action: 'time', confidence: 0.97 };
         }
 
-        // --- 3) MATH (e.g., "what is 25 * 4", "calculate 10 + 7") ---
+        // 3) MATH
         const mathMatch = input.match(/(\d+)\s*([+\-*/])\s*(\d+)/);
         if (mathMatch) {
           const a = parseFloat(mathMatch[1]);
           const op = mathMatch[2];
           const b = parseFloat(mathMatch[3]);
-          let result = 0;
-          let valid = true;
+          let result = 0,
+            valid = true;
           switch (op) {
             case '+':
               result = a + b;
@@ -613,303 +680,271 @@
             default:
               valid = false;
           }
-          if (valid) {
-            return { action: 'math', result: result, confidence: 0.96 };
-          }
+          if (valid) return { action: 'math', result, confidence: 0.96 };
         }
 
-        // --- 4) SCROLL ---
-        if (/scroll\s*down|down\s*scroll|move\s*down|go\s*down\b|scroll\s*a\s*little\s*down/i.test(input)) {
+        // 4) SCROLL
+        if (/scroll\s*down|down\s*scroll|move\s*down|go\s*down\b|scroll\s*a\s*little\s*down/i.test(input))
           return { action: 'scroll', direction: 'down', confidence: 0.94 };
-        }
-        if (/scroll\s*up|up\s*scroll|move\s*up|go\s*up\b|scroll\s*a\s*little\s*up/i.test(input)) {
+        if (/scroll\s*up|up\s*scroll|move\s*up|go\s*up\b|scroll\s*a\s*little\s*up/i.test(input))
           return { action: 'scroll', direction: 'up', confidence: 0.94 };
-        }
 
-        // --- 5) NAVIGATE ---
-        if (/\b(go\s*home|home\s*page|take\s*me\s*home|navigate\s*home|go\s*to\s*home|scroll to top)\b/i.test(input)) {
+        // 5) NAVIGATE
+        if (/\b(go\s*home|home\s*page|take\s*me\s*home|navigate\s*home|go\s*to\s*home|scroll to top)\b/i.test(input))
           return { action: 'navigate', target: 'home', confidence: 0.95 };
-        }
-        if (/\b(go\s*back|back\s*page|navigate\s*back)\b/i.test(input)) {
+        if (/\b(go\s*back|back\s*page|navigate\s*back)\b/i.test(input))
           return { action: 'navigate', target: 'back', confidence: 0.93 };
-        }
-        if (/\b(go\s*forward|forward\s*page|navigate\s*forward)\b/i.test(input)) {
+        if (/\b(go\s*forward|forward\s*page|navigate\s*forward)\b/i.test(input))
           return { action: 'navigate', target: 'forward', confidence: 0.93 };
-        }
-        if (/\b(dashboard|go\s*to\s*dashboard|open\s*dashboard)\b/i.test(input)) {
+        if (/\b(dashboard|go\s*to\s*dashboard|open\s*dashboard)\b/i.test(input))
           return { action: 'navigate', target: 'dashboard', confidence: 0.94 };
-        }
-        if (/\b(profile|go\s*to\s*profile|open\s*profile)\b/i.test(input)) {
+        if (/\b(profile|go\s*to\s*profile|open\s*profile)\b/i.test(input))
           return { action: 'navigate', target: 'profile', confidence: 0.94 };
-        }
 
-        // --- 6) OPEN (with synonyms) ---
-        const openYt = /\b(open\s*youtube|youtube\s*open|go\s*to\s*youtube|launch\s*youtube|yt\b|youtube\s*please)/i;
-        const openGg = /\b(open\s*google|google\s*open|go\s*to\s*google|launch\s*google|search\s*google\s*for)/i;
-        const openFb = /\b(open\s*facebook|facebook\s*open|go\s*to\s*facebook|launch\s*facebook|fb\b)/i;
-        const openGit = /\b(open\s*github|github\s*open|go\s*to\s*github|launch\s*github)/i;
-
-        if (openYt.test(input)) {
+        // 6) OPEN
+        if (/\b(open\s*youtube|youtube\s*open|go\s*to\s*youtube|launch\s*youtube|yt\b|youtube\s*please)/i.test(input)) {
           context.lastTarget = 'youtube';
           return { action: 'open', target: 'youtube', confidence: 0.98 };
         }
-        if (openGg.test(input)) {
+        if (/\b(open\s*google|google\s*open|go\s*to\s*google|launch\s*google|search\s*google\s*for)/i.test(input)) {
           context.lastTarget = 'google';
           return { action: 'open', target: 'google', confidence: 0.98 };
         }
-        if (openFb.test(input)) {
+        if (/\b(open\s*facebook|facebook\s*open|go\s*to\s*facebook|launch\s*facebook|fb\b)/i.test(input)) {
           context.lastTarget = 'facebook';
           return { action: 'open', target: 'facebook', confidence: 0.97 };
         }
-        if (openGit.test(input)) {
+        if (/\b(open\s*github|github\s*open|go\s*to\s*github|launch\s*github)/i.test(input)) {
           context.lastTarget = 'github';
           return { action: 'open', target: 'github', confidence: 0.97 };
         }
 
-        // --- 7) PLAY (advanced: extract artist, song, platform) ---
-        // pattern: "play [song] by [artist] on [platform]" or "play [song] on [platform]"
+        // 7) PLAY
         let playMatch = input.match(/play\s+(.+?)\s+by\s+(.+?)(?:\s+on\s+(\w+))?$/i);
-        if (!playMatch) {
-          playMatch = input.match(/play\s+(.+?)(?:\s+on\s+(\w+))?$/i);
-        }
+        if (!playMatch) playMatch = input.match(/play\s+(.+?)(?:\s+on\s+(\w+))?$/i);
         if (playMatch) {
           let query = playMatch[1].trim();
           let platform = playMatch[2] || null;
-          // if query is too generic, use context or fallback
           if (!query || query.length < 2 || /^(song|music|video|that|it|something)$/i.test(query)) {
-            if (context.lastQuery && context.lastAction === 'play') {
-              query = context.lastQuery;
-            } else {
-              query = 'some great music';
-            }
+            if (context.lastQuery && context.lastAction === 'play') query = context.lastQuery;
+            else query = 'some great music';
           }
-          // If platform is not specified, but context has a target (e.g., youtube), use it
           if (!platform && context.lastTarget && ['youtube', 'spotify', 'soundcloud'].includes(context.lastTarget)) {
             platform = context.lastTarget;
           }
           context.lastQuery = query;
           context.lastTarget = platform || 'default player';
           context.lastAction = 'play';
-          return { action: 'play', query: query, target: platform || context.lastTarget, confidence: 0.96 };
+          return { action: 'play', query, target: platform || context.lastTarget, confidence: 0.96 };
         }
 
-        // --- 8) SEARCH (general) ---
+        // 8) SEARCH
         const searchMatch = input.match(
           /\b(search|find|look\s*up|show\s+me|get|tell\s+me\s+about|what\s+is|who\s+is|where\s+is|give\s+me)\s+(.+)$/i
         );
         if (searchMatch) {
           let query = searchMatch[2].trim();
-          if (!query || query.length < 2) {
-            return { action: 'search', query: 'the latest news', confidence: 0.5 };
-          }
-          // Contextual: if we just opened youtube, search on youtube
+          if (!query || query.length < 2) return { action: 'search', query: 'the latest news', confidence: 0.5 };
           if (context.lastTarget === 'youtube' && context.lastAction === 'open') {
-            return { action: 'search', query: query, target: 'youtube', confidence: 0.92 };
+            return { action: 'search', query, target: 'youtube', confidence: 0.92 };
           }
           context.lastQuery = query;
           context.lastAction = 'search';
-          return { action: 'search', query: query, confidence: 0.95 };
+          return { action: 'search', query, confidence: 0.95 };
         }
 
-        // --- 9) "repeat" / "again" ---
+        // 9) REPEAT / AGAIN
         if (/\b(again|repeat|say\s+that\s+again|one\s+more\s+time|replay|do that again)\b/i.test(input)) {
           if (context.lastFullCommand) {
-            const cmd = { ...context.lastFullCommand, confidence: 0.7, note: 'repeated' };
-            return cmd;
+            return { ...context.lastFullCommand, confidence: 0.7, note: 'repeated' };
           }
           return { action: 'unknown', confidence: 0.3, input: raw };
         }
 
-        // --- 10) SYSTEM: refresh, stop, clear ---
-        if (/\b(refresh|reload|update\s+page)\b/i.test(input)) {
+        // 10) SYSTEM
+        if (/\b(refresh|reload|update\s+page)\b/i.test(input))
           return { action: 'system', command: 'refresh', confidence: 0.95 };
-        }
-        if (/\b(stop|cancel|abort|quit|exit|shut up)\b/i.test(input)) {
+        if (/\b(stop|cancel|abort|quit|exit|shut up)\b/i.test(input))
           return { action: 'system', command: 'stop', confidence: 0.93 };
-        }
-        if (/\b(clear|reset|empty|clear chat|clear conversation)\b/i.test(input)) {
+        if (/\b(clear|reset|empty|clear chat|clear conversation)\b/i.test(input))
           return { action: 'system', command: 'clear', confidence: 0.94 };
-        }
 
-        // --- 11) FALLBACK with context hint ---
-        // If user says "search that" or "play it", use context
+        // 11) CONTEXTUAL FALLBACK (that/it)
         if (/\b(that|it|this)\b/.test(input) && context.lastQuery) {
-          if (context.lastAction === 'play') {
+          if (context.lastAction === 'play')
             return { action: 'play', query: context.lastQuery, target: context.lastTarget, confidence: 0.65,
             note: 'contextual' };
-          }
-          if (context.lastAction === 'search') {
+          if (context.lastAction === 'search')
             return { action: 'search', query: context.lastQuery, confidence: 0.65, note: 'contextual' };
-          }
         }
 
         return { action: 'unknown', confidence: 0.2, input: raw };
       }
 
       // ================================================================
-      //  EXECUTE COMMAND (with response generation & side effects)
+      //  EXECUTE COMMAND (side effects + display)
       // ================================================================
       function executeCommand(command) {
         if (!command) return;
-        const action = command.action;
-
-        // Store for context
         context.lastFullCommand = command;
 
+        // 1) Always show the parsed JSON in the panel
+        updateCommandDisplay(command);
+
+        const action = command.action;
         let spokenResponse = '';
-        let displayAction = action;
 
-        // --- GREETING ---
-        if (action === 'greeting') {
-          spokenResponse = generateResponse('greeting');
-          addMessage('assistant', spokenResponse);
-          speak(spokenResponse, 0.9);
-          return;
-        }
+        // 2) Handle each action
+        switch (action) {
+          case 'greeting':
+            spokenResponse = generateResponse('greeting');
+            addMessage('assistant', spokenResponse);
+            speak(spokenResponse, 0.9);
+            setStatus('Done ✓', 'success');
+            setTimeout(() => setStatus('Standby', ''), 1200);
+            return;
 
-        // --- TIME ---
-        if (action === 'time') {
-          spokenResponse = generateResponse('time');
-          addMessage('assistant', spokenResponse);
-          speak(spokenResponse, 0.9);
-          return;
-        }
+          case 'time':
+            spokenResponse = generateResponse('time');
+            addMessage('assistant', spokenResponse);
+            speak(spokenResponse, 0.9);
+            setStatus('Done ✓', 'success');
+            setTimeout(() => setStatus('Standby', ''), 1200);
+            return;
 
-        // --- MATH ---
-        if (action === 'math') {
-          spokenResponse = generateResponse('math', { result: command.result });
-          addMessage('assistant', spokenResponse);
-          speak(spokenResponse, 0.9);
-          return;
-        }
+          case 'math':
+            spokenResponse = generateResponse('math', { result: command.result });
+            addMessage('assistant', spokenResponse);
+            speak(spokenResponse, 0.9);
+            setStatus('Done ✓', 'success');
+            setTimeout(() => setStatus('Standby', ''), 1200);
+            return;
 
-        // --- OPEN ---
-        if (action === 'open') {
-          const target = command.target || 'the page';
-          spokenResponse = generateResponse('open', { target });
-          addMessage('assistant', spokenResponse);
-          speak(spokenResponse, 0.9);
-          console.log(`[OPEN] target: ${target}`);
-          if (target === 'youtube') window.open('https://youtube.com', '_blank');
-          else if (target === 'google') window.open('https://google.com', '_blank');
-          else if (target === 'facebook') window.open('https://facebook.com', '_blank');
-          else if (target === 'github') window.open('https://github.com', '_blank');
-          context.lastAction = 'open';
-          context.lastTarget = target;
-          return;
-        }
-
-        // --- PLAY ---
-        if (action === 'play') {
-          const query = command.query || 'music';
-          const target = command.target || '';
-          spokenResponse = generateResponse('play', { query, target });
-          addMessage('assistant', spokenResponse);
-          speak(spokenResponse, 0.85);
-          console.log(`[PLAY] query: "${query}" target: ${target}`);
-          // If target is youtube, open search
-          if (target && target.toLowerCase() === 'youtube') {
-            window.open(`https://www.youtube.com/results?search_query=${encodeURIComponent(query)}`, '_blank');
-          } else {
-            // just log
+          case 'open': {
+            const target = command.target || 'the page';
+            spokenResponse = generateResponse('open', { target });
+            addMessage('assistant', spokenResponse);
+            speak(spokenResponse, 0.9);
+            if (target === 'youtube') window.open('https://youtube.com', '_blank');
+            else if (target === 'google') window.open('https://google.com', '_blank');
+            else if (target === 'facebook') window.open('https://facebook.com', '_blank');
+            else if (target === 'github') window.open('https://github.com', '_blank');
+            context.lastAction = 'open';
+            context.lastTarget = target;
+            setStatus('Done ✓', 'success');
+            setTimeout(() => setStatus('Standby', ''), 1200);
+            return;
           }
-          context.lastAction = 'play';
-          context.lastQuery = query;
-          context.lastTarget = target || 'default';
-          return;
-        }
 
-        // --- SEARCH ---
-        if (action === 'search') {
-          const query = command.query || 'web';
-          const target = command.target || 'web';
-          spokenResponse = generateResponse('search', { query });
-          addMessage('assistant', spokenResponse);
-          speak(spokenResponse, 0.9);
-          console.log(`[SEARCH] query: "${query}" target: ${target}`);
-          if (target === 'youtube') {
-            window.open(`https://www.youtube.com/results?search_query=${encodeURIComponent(query)}`, '_blank');
-          } else {
-            window.open(`https://www.google.com/search?q=${encodeURIComponent(query)}`, '_blank');
-          }
-          context.lastAction = 'search';
-          context.lastQuery = query;
-          return;
-        }
-
-        // --- SCROLL ---
-        if (action === 'scroll') {
-          const dir = command.direction || 'down';
-          spokenResponse = generateResponse('scroll', { direction: dir });
-          addMessage('assistant', spokenResponse);
-          speak(spokenResponse, 0.9);
-          if (dir === 'down') window.scrollBy({ top: 500, behavior: 'smooth' });
-          else window.scrollBy({ top: -500, behavior: 'smooth' });
-          context.lastAction = 'scroll';
-          return;
-        }
-
-        // --- NAVIGATE ---
-        if (action === 'navigate') {
-          const target = command.target || 'home';
-          spokenResponse = generateResponse('navigate', { target });
-          addMessage('assistant', spokenResponse);
-          speak(spokenResponse, 0.9);
-          if (target === 'home') window.scrollTo({ top: 0, behavior: 'smooth' });
-          else if (target === 'back') history.back();
-          else if (target === 'forward') history.forward();
-          context.lastAction = 'navigate';
-          context.lastTarget = target;
-          return;
-        }
-
-        // --- SYSTEM ---
-        if (action === 'system') {
-          const cmd = command.command || 'unknown';
-          spokenResponse = generateResponse('system', { command: cmd });
-          addMessage('assistant', spokenResponse);
-          speak(spokenResponse, 0.9);
-          if (cmd === 'refresh') location.reload();
-          else if (cmd === 'stop') {
-            if (recognition) {
-              try { recognition.abort(); } catch (_) {}
+          case 'play': {
+            const query = command.query || 'music';
+            const target = command.target || '';
+            spokenResponse = generateResponse('play', { query, target });
+            addMessage('assistant', spokenResponse);
+            speak(spokenResponse, 0.85);
+            if (target && target.toLowerCase() === 'youtube') {
+              window.open(`https://www.youtube.com/results?search_query=${encodeURIComponent(query)}`, '_blank');
             }
-            isListening = false;
-            micBtn.classList.remove('listening', 'error');
-            appContainer.classList.remove('listening');
-            setStatus('Stopped', '');
-          } else if (cmd === 'clear') {
-            chatLog.innerHTML = `<div class="empty-chat">✨ Conversation cleared. Tap the mic to start.</div>`;
+            context.lastAction = 'play';
+            context.lastQuery = query;
+            context.lastTarget = target || 'default';
+            setStatus('Done ✓', 'success');
+            setTimeout(() => setStatus('Standby', ''), 1200);
+            return;
           }
-          console.log(`[SYSTEM] command: ${cmd}`);
-          return;
-        }
 
-        // --- UNKNOWN ---
-        if (action === 'unknown' || !action) {
-          spokenResponse = generateResponse('unknown');
-          addMessage('assistant', spokenResponse);
-          speak(spokenResponse, 0.85);
-          console.log('[UNKNOWN] input:', command.input || '');
-          return;
-        }
+          case 'search': {
+            const query = command.query || 'web';
+            const target = command.target || 'web';
+            spokenResponse = generateResponse('search', { query });
+            addMessage('assistant', spokenResponse);
+            speak(spokenResponse, 0.9);
+            if (target === 'youtube') {
+              window.open(`https://www.youtube.com/results?search_query=${encodeURIComponent(query)}`, '_blank');
+            } else {
+              window.open(`https://www.google.com/search?q=${encodeURIComponent(query)}`, '_blank');
+            }
+            context.lastAction = 'search';
+            context.lastQuery = query;
+            setStatus('Done ✓', 'success');
+            setTimeout(() => setStatus('Standby', ''), 1200);
+            return;
+          }
 
-        // --- FALLBACK ---
-        spokenResponse = pickRandom(responseTemplates.default_reply);
-        addMessage('assistant', spokenResponse);
-        speak(spokenResponse, 0.9);
+          case 'scroll': {
+            const dir = command.direction || 'down';
+            spokenResponse = generateResponse('scroll', { direction: dir });
+            addMessage('assistant', spokenResponse);
+            speak(spokenResponse, 0.9);
+            if (dir === 'down') window.scrollBy({ top: 500, behavior: 'smooth' });
+            else window.scrollBy({ top: -500, behavior: 'smooth' });
+            context.lastAction = 'scroll';
+            setStatus('Done ✓', 'success');
+            setTimeout(() => setStatus('Standby', ''), 1200);
+            return;
+          }
+
+          case 'navigate': {
+            const target = command.target || 'home';
+            spokenResponse = generateResponse('navigate', { target });
+            addMessage('assistant', spokenResponse);
+            speak(spokenResponse, 0.9);
+            if (target === 'home') window.scrollTo({ top: 0, behavior: 'smooth' });
+            else if (target === 'back') history.back();
+            else if (target === 'forward') history.forward();
+            context.lastAction = 'navigate';
+            context.lastTarget = target;
+            setStatus('Done ✓', 'success');
+            setTimeout(() => setStatus('Standby', ''), 1200);
+            return;
+          }
+
+          case 'system': {
+            const cmd = command.command || 'unknown';
+            spokenResponse = generateResponse('system', { command: cmd });
+            addMessage('assistant', spokenResponse);
+            speak(spokenResponse, 0.9);
+            if (cmd === 'refresh') location.reload();
+            else if (cmd === 'stop') {
+              if (recognition) { try { recognition.abort(); } catch (_) {} }
+              isListening = false;
+              micBtn.classList.remove('listening', 'error');
+              appContainer.classList.remove('listening');
+              setStatus('Stopped', '');
+            } else if (cmd === 'clear') {
+              chatLog.innerHTML = `<div class="empty-chat">✨ Conversation cleared. Tap the mic to start.</div>`;
+              updateCommandDisplay(null);
+            }
+            context.lastAction = 'system';
+            if (cmd !== 'stop' && cmd !== 'clear') {
+              setStatus('Done ✓', 'success');
+              setTimeout(() => setStatus('Standby', ''), 1200);
+            }
+            return;
+          }
+
+          case 'unknown':
+          default: {
+            spokenResponse = generateResponse('unknown');
+            addMessage('assistant', spokenResponse);
+            speak(spokenResponse, 0.85);
+            setStatus('Unknown', 'error');
+            setTimeout(() => setStatus('Standby', ''), 1500);
+            return;
+          }
+        }
       }
 
       // ================================================================
-      //  WEB SPEECH API SETUP
+      //  WEB SPEECH API
       // ================================================================
       function initSpeechRecognition() {
         const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
         if (!SR) {
           setStatus('Not supported', 'error');
           micBtn.disabled = true;
-          micBtn.title = 'Speech Recognition not supported';
-          addMessage('assistant', 'Sorry, your browser does not support voice input.');
+          micBtn.title = 'Voice not supported';
+          addMessage('assistant', '⚠️ Your browser does not support Speech Recognition.');
           return null;
         }
 
@@ -925,7 +960,6 @@
           micBtn.classList.remove('error');
           appContainer.classList.add('listening');
           setStatus('Listening...', 'active');
-          // Add a subtle user indicator in chat (but don't clutter)
         };
 
         rec.onerror = function(event) {
@@ -937,7 +971,7 @@
           } else if (event.error === 'no-speech') {
             setStatus('No speech', 'error');
             speak('I did not hear anything.', 0.85);
-            addMessage('assistant', '🔇 No speech detected. Try again.');
+            addMessage('assistant', '🔇 No speech detected.');
           } else if (event.error === 'audio-capture') {
             setStatus('No mic', 'error');
             speak('No microphone found.', 0.85);
@@ -951,7 +985,6 @@
         };
 
         rec.onend = function() {
-          // If we're still logically listening but ended (silence), clean up
           if (isListening) {
             micBtn.classList.remove('listening');
             appContainer.classList.remove('listening');
@@ -962,46 +995,24 @@
 
         rec.onresult = function(event) {
           let finalText = '';
-          let interimText = '';
-
           for (let i = event.resultIndex; i < event.results.length; i++) {
             const result = event.results[i];
             const transcript = result[0].transcript.trim();
-            if (result.isFinal) {
-              finalText = transcript;
-            } else {
-              interimText = transcript;
-            }
+            if (result.isFinal) finalText = transcript;
           }
 
-          // Show interim in chat (optional) — we'll just show final to keep clean
           if (finalText) {
-            // Add user message
             addMessage('user', finalText);
-
-            // Parse and execute
+            setStatus('Processing...', 'active');
             const command = parseCommand(finalText);
             executeCommand(command);
-
-            // Update status
-            if (command.action === 'unknown') {
-              setStatus('Unknown', 'error');
-              setTimeout(() => setStatus('Standby', ''), 1500);
-            } else {
-              setStatus('Done ✓', 'success');
-              setTimeout(() => setStatus('Standby', ''), 1200);
-            }
-
-            // Stop listening after final result
+            // stop listening after final result
             if (isListening) {
               try { rec.stop(); } catch (_) {}
               micBtn.classList.remove('listening');
               appContainer.classList.remove('listening');
               isListening = false;
             }
-          } else if (interimText) {
-            // Optionally show interim: we skip to keep UI clean, but we can set a subtle status
-            setStatus('Hearing...', 'active');
           }
         };
 
@@ -1049,7 +1060,7 @@
           setStatus('Not supported', 'error');
           micBtn.disabled = true;
           micBtn.title = 'Voice not supported';
-          addMessage('assistant', '⚠️ Your browser does not support Speech Recognition. Please use Chrome, Edge, or Opera.');
+          addMessage('assistant', '⚠️ Browser does not support Speech Recognition. Use Chrome, Edge, or Opera.');
           return;
         }
 
@@ -1062,7 +1073,6 @@
             toggleMic(); }
         });
 
-        // Keyboard shortcut: Ctrl+Shift+M
         document.addEventListener('keydown', function(e) {
           if (e.ctrlKey && e.shiftKey && (e.key === 'm' || e.key === 'M')) {
             e.preventDefault();
@@ -1071,8 +1081,9 @@
         });
 
         setStatus('Standby', '');
-        addMessage('assistant', '👋 Hi! I\'m your AI assistant. Click the mic or press Ctrl+Shift+M and say something.');
-        console.log('[Jarvis] Ready. Click mic or press Ctrl+Shift+M.');
+        addMessage('assistant', '👋 Hi! Click the mic or press Ctrl+Shift+M and say something.');
+        updateCommandDisplay(null);
+        console.log('[Jarvis] Ready.');
       }
 
       if (document.readyState === 'loading') {
@@ -1083,6 +1094,5 @@
 
     })();
   </script>
-
 </body>
 </html>
