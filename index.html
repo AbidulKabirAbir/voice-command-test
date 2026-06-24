@@ -1,165 +1,928 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <title>AI Voice Assistant</title>
-  <style>
-    body {
-      font-family: Arial;
-      text-align: center;
-      padding: 40px;
-    }
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Voice Command Controller</title>
+    <style>
+        /* ===== RESET & BASE ===== */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
 
-    button {
-      padding: 15px 25px;
-      font-size: 18px;
-      cursor: pointer;
-    }
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(145deg, #0b0e1a 0%, #141b2b 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
 
-    #log {
-      margin-top: 20px;
-      font-size: 18px;
-      color: #333;
-    }
+        /* ===== CARD ===== */
+        .assistant-card {
+            background: rgba(22, 30, 50, 0.85);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border-radius: 48px;
+            padding: 48px 40px 40px;
+            max-width: 560px;
+            width: 100%;
+            box-shadow: 0 30px 80px rgba(0, 0, 0, 0.7), inset 0 0 0 1px rgba(255, 255, 255, 0.06);
+            transition: box-shadow 0.3s ease;
+            border: 1px solid rgba(255, 255, 255, 0.04);
+        }
 
-    .card {
-      margin-top: 40px;
-      padding: 20px;
-      border: 1px solid #ddd;
-      border-radius: 10px;
-    }
-  </style>
+        .assistant-card.listening {
+            box-shadow: 0 30px 80px rgba(0, 0, 0, 0.7), 0 0 0 2px rgba(99, 140, 255, 0.3), inset 0 0 0 1px rgba(255, 255, 255, 0.08);
+        }
+
+        /* ===== HEADER ===== */
+        .header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 28px;
+        }
+
+        .header h1 {
+            color: #fff;
+            font-weight: 600;
+            font-size: 22px;
+            letter-spacing: -0.3px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .header h1 span {
+            background: linear-gradient(135deg, #638cff, #a78bfa);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .status-badge {
+            font-size: 12px;
+            font-weight: 500;
+            padding: 6px 14px;
+            border-radius: 100px;
+            background: rgba(255, 255, 255, 0.06);
+            color: rgba(255, 255, 255, 0.5);
+            border: 1px solid rgba(255, 255, 255, 0.06);
+            transition: all 0.3s ease;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .status-badge.active {
+            background: rgba(99, 140, 255, 0.2);
+            color: #638cff;
+            border-color: rgba(99, 140, 255, 0.25);
+            animation: pulse-badge 1.8s ease-in-out infinite;
+        }
+
+        .status-badge.error {
+            background: rgba(255, 107, 107, 0.15);
+            color: #ff6b6b;
+            border-color: rgba(255, 107, 107, 0.2);
+        }
+
+        .status-badge.success {
+            background: rgba(52, 211, 153, 0.15);
+            color: #34d399;
+            border-color: rgba(52, 211, 153, 0.2);
+        }
+
+        @keyframes pulse-badge {
+            0%,
+            100% {
+                opacity: 1;
+            }
+            50% {
+                opacity: 0.5;
+            }
+        }
+
+        /* ===== MIC BUTTON ===== */
+        .mic-wrapper {
+            display: flex;
+            justify-content: center;
+            margin: 12px 0 28px;
+        }
+
+        .mic-btn {
+            width: 120px;
+            height: 120px;
+            border-radius: 50%;
+            border: none;
+            background: linear-gradient(135deg, #1a2340, #0f1628);
+            box-shadow: 0 12px 40px rgba(0, 0, 0, 0.6), inset 0 1px 0 rgba(255, 255, 255, 0.06);
+            color: #fff;
+            font-size: 52px;
+            cursor: pointer;
+            transition: all 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            border: 1px solid rgba(255, 255, 255, 0.06);
+        }
+
+        .mic-btn:hover {
+            transform: scale(1.03);
+            background: linear-gradient(135deg, #1f2a4a, #141d32);
+        }
+
+        .mic-btn:active {
+            transform: scale(0.94);
+        }
+
+        .mic-btn.listening {
+            background: linear-gradient(135deg, #2a3b6b, #1a2340);
+            box-shadow: 0 0 0 0 rgba(99, 140, 255, 0.4);
+            animation: mic-pulse 1.6s ease-in-out infinite;
+            border-color: rgba(99, 140, 255, 0.3);
+        }
+
+        .mic-btn.listening .mic-icon {
+            animation: mic-icon-bounce 0.9s ease-in-out infinite alternate;
+        }
+
+        .mic-btn.error {
+            background: linear-gradient(135deg, #5a1a1a, #3d0f0f);
+            border-color: rgba(255, 107, 107, 0.3);
+        }
+
+        @keyframes mic-pulse {
+            0% {
+                box-shadow: 0 0 0 0 rgba(99, 140, 255, 0.4);
+            }
+            70% {
+                box-shadow: 0 0 0 24px rgba(99, 140, 255, 0);
+            }
+            100% {
+                box-shadow: 0 0 0 0 rgba(99, 140, 255, 0);
+            }
+        }
+
+        @keyframes mic-icon-bounce {
+            0% {
+                transform: scale(1);
+            }
+            100% {
+                transform: scale(1.12);
+            }
+        }
+
+        .mic-btn .mic-icon {
+            display: block;
+            line-height: 1;
+            transition: transform 0.2s ease;
+        }
+
+        /* ===== TRANSCRIPT ===== */
+        .transcript-area {
+            background: rgba(0, 0, 0, 0.35);
+            border-radius: 20px;
+            padding: 18px 22px;
+            min-height: 80px;
+            margin-bottom: 18px;
+            border: 1px solid rgba(255, 255, 255, 0.04);
+            transition: border-color 0.3s ease;
+        }
+
+        .transcript-area .label {
+            font-size: 10px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.8px;
+            color: rgba(255, 255, 255, 0.2);
+            margin-bottom: 6px;
+        }
+
+        .transcript-area .text {
+            color: rgba(255, 255, 255, 0.85);
+            font-size: 18px;
+            font-weight: 400;
+            line-height: 1.5;
+            word-break: break-word;
+            min-height: 30px;
+        }
+
+        .transcript-area .text .placeholder {
+            color: rgba(255, 255, 255, 0.2);
+            font-style: italic;
+            font-weight: 300;
+        }
+
+        .transcript-area .text .highlight {
+            color: #a78bfa;
+            font-weight: 500;
+        }
+
+        /* ===== COMMAND OUTPUT ===== */
+        .command-output {
+            background: rgba(0, 0, 0, 0.25);
+            border-radius: 16px;
+            padding: 16px 20px;
+            margin-bottom: 18px;
+            border: 1px solid rgba(255, 255, 255, 0.04);
+            min-height: 52px;
+            display: flex;
+            align-items: center;
+            transition: all 0.3s ease;
+        }
+
+        .command-output .label {
+            font-size: 10px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.8px;
+            color: rgba(255, 255, 255, 0.2);
+            margin-right: 14px;
+            flex-shrink: 0;
+        }
+
+        .command-output .result {
+            color: rgba(255, 255, 255, 0.7);
+            font-size: 15px;
+            font-weight: 400;
+            font-family: 'JetBrains Mono', 'Fira Code', monospace;
+            word-break: break-all;
+            flex: 1;
+        }
+
+        .command-output .result .empty {
+            color: rgba(255, 255, 255, 0.15);
+            font-style: italic;
+            font-weight: 300;
+            font-family: Inter, sans-serif;
+        }
+
+        .command-output .result .key {
+            color: #fbbf24;
+        }
+        .command-output .result .string {
+            color: #34d399;
+        }
+
+        /* ===== QUICK TIPS ===== */
+        .tips {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-top: 6px;
+        }
+
+        .tips .tip {
+            font-size: 11px;
+            padding: 5px 12px;
+            border-radius: 100px;
+            background: rgba(255, 255, 255, 0.04);
+            color: rgba(255, 255, 255, 0.25);
+            border: 1px solid rgba(255, 255, 255, 0.04);
+            transition: all 0.2s ease;
+            cursor: default;
+            user-select: none;
+        }
+
+        .tips .tip:hover {
+            background: rgba(255, 255, 255, 0.07);
+            color: rgba(255, 255, 255, 0.4);
+        }
+
+        /* ===== RESPONSIVE ===== */
+        @media (max-width: 480px) {
+            .assistant-card {
+                padding: 32px 20px 28px;
+                border-radius: 32px;
+            }
+
+            .mic-btn {
+                width: 96px;
+                height: 96px;
+                font-size: 40px;
+            }
+
+            .header h1 {
+                font-size: 18px;
+            }
+
+            .transcript-area .text {
+                font-size: 16px;
+            }
+
+            .command-output .result {
+                font-size: 13px;
+            }
+
+            .tips .tip {
+                font-size: 10px;
+                padding: 4px 10px;
+            }
+        }
+
+        @media (max-width: 380px) {
+            .assistant-card {
+                padding: 24px 14px 20px;
+                border-radius: 24px;
+            }
+
+            .mic-btn {
+                width: 76px;
+                height: 76px;
+                font-size: 32px;
+            }
+        }
+    </style>
 </head>
-
 <body>
 
-<h1>🤖 AI Voice Assistant (Free)</h1>
+    <div class="assistant-card" id="app">
+        <!-- HEADER -->
+        <div class="header">
+            <h1>
+                🎙️ <span>Voice</span>Command
+            </h1>
+            <div class="status-badge" id="statusBadge">Standby</div>
+        </div>
 
-<button onclick="startVoice()">🎤 Speak</button>
+        <!-- MICROPHONE -->
+        <div class="mic-wrapper">
+            <button class="mic-btn" id="micBtn" aria-label="Toggle microphone">
+                <span class="mic-icon">🎤</span>
+            </button>
+        </div>
 
-<div id="log">Say something...</div>
+        <!-- TRANSCRIPT -->
+        <div class="transcript-area">
+            <div class="label">You said</div>
+            <div class="text" id="transcriptText">
+                <span class="placeholder">Tap the mic and speak...</span>
+            </div>
+        </div>
 
-<div class="card">
-  Try:
-  <br>• open youtube
-  <br>• play lo-fi music
-  <br>• search best phone
-  <br>• scroll down
-  <br>• go home
-</div>
+        <!-- COMMAND OUTPUT -->
+        <div class="command-output">
+            <span class="label">📦 Command</span>
+            <span class="result" id="commandResult">
+                <span class="empty">Waiting for input...</span>
+            </span>
+        </div>
 
-<script>
-/* =========================
-   🧠 AI BRAIN (NO API)
-========================= */
+        <!-- TIPS -->
+        <div class="tips">
+            <span class="tip">🎬 open youtube</span>
+            <span class="tip">🔍 search best phone</span>
+            <span class="tip">🎵 play james song</span>
+            <span class="tip">⬇️ scroll down</span>
+            <span class="tip">🏠 go home</span>
+        </div>
+    </div>
 
-function aiUnderstand(text) {
-  text = text.toLowerCase();
+    <script>
+        (function() {
+            'use strict';
 
-  // Return structured "intent object"
-  if (text.includes("open youtube"))
-    return { action: "open", target: "youtube" };
+            // ============================================================
+            //  DOM REFS
+            // ============================================================
+            const micBtn = document.getElementById('micBtn');
+            const statusBadge = document.getElementById('statusBadge');
+            const transcriptText = document.getElementById('transcriptText');
+            const commandResult = document.getElementById('commandResult');
+            const appCard = document.querySelector('.assistant-card');
 
-  if (text.includes("open google"))
-    return { action: "open", target: "google" };
+            // ============================================================
+            //  STATE
+            // ============================================================
+            let isListening = false;
+            let recognition = null;
+            let lastCommand = null; // store last parsed command for "repeat" style
 
-  if (text.includes("play"))
-    return { action: "play", query: text.replace("play", "").trim() };
+            // ============================================================
+            //  SPEECH SYNTHESIS (voice feedback)
+            // ============================================================
+            function speak(text, rate = 0.9) {
+                if (!window.speechSynthesis) return;
+                const utterance = new SpeechSynthesisUtterance(text);
+                utterance.rate = rate;
+                utterance.pitch = 1.0;
+                utterance.volume = 0.9;
+                utterance.lang = 'en-US';
+                window.speechSynthesis.cancel();
+                window.speechSynthesis.speak(utterance);
+            }
 
-  if (text.includes("search"))
-    return { action: "search", query: text.replace("search", "").trim() };
+            // ============================================================
+            //  STATUS HELPERS
+            // ============================================================
+            function setStatus(label, type) {
+                statusBadge.textContent = label;
+                statusBadge.className = 'status-badge';
+                if (type) statusBadge.classList.add(type);
+            }
 
-  if (text.includes("scroll down"))
-    return { action: "scroll", direction: "down" };
+            function setTranscript(text, isInterim = false) {
+                if (isInterim) {
+                    transcriptText.innerHTML = `<span style="color:rgba(255,255,255,0.4);">${escapeHtml(text)}</span>`;
+                } else {
+                    transcriptText.textContent = text || ' ';
+                    if (!text) {
+                        transcriptText.innerHTML = `<span class="placeholder">Tap the mic and speak...</span>`;
+                    }
+                }
+            }
 
-  if (text.includes("scroll up"))
-    return { action: "scroll", direction: "up" };
+            function setCommandOutput(json) {
+                if (!json) {
+                    commandResult.innerHTML = `<span class="empty">Waiting for input...</span>`;
+                    return;
+                }
+                let pretty = '';
+                try {
+                    pretty = JSON.stringify(json, null, 2);
+                } catch (_) {
+                    pretty = String(json);
+                }
+                // simple syntax highlight
+                const highlighted = pretty
+                    .replace(/"([^"]+)":/g, '<span class="key">"$1"</span>:')
+                    .replace(/: "([^"]+)"/g, ': <span class="string">"$1"</span>')
+                    .replace(/: (\d+\.?\d*)/g, ': <span class="string">$1</span>')
+                    .replace(/: (true|false)/g, ': <span class="string">$1</span>');
+                commandResult.innerHTML = highlighted;
+            }
 
-  if (text.includes("home"))
-    return { action: "home" };
+            function escapeHtml(text) {
+                const div = document.createElement('div');
+                div.textContent = text;
+                return div.innerHTML;
+            }
 
-  return { action: "unknown", text };
-}
+            // ============================================================
+            //  🧠 SMART COMMAND ENGINE (Intent Detection)
+            // ============================================================
+            function parseCommand(raw) {
+                if (!raw || typeof raw !== 'string') {
+                    return { action: 'unknown', confidence: 0.0 };
+                }
 
-/* =========================
-   ⚙️ EXECUTOR ENGINE
-========================= */
+                let input = raw.toLowerCase().trim();
+                // Normalize: remove filler words, extra spaces
+                input = input.replace(/\b(please|can you|could you|would you|i want to|i need to|let's|lets|maybe|just|kind of|sort of)\b/g, '')
+                    .replace(/\s+/g, ' ')
+                    .trim();
 
-function execute(command) {
-  console.log("AI Command:", command);
+                // --- 1) SCROLL ---
+                const scrollDown = /scroll\s*down|down\s*scroll|move\s*down|go\s*down\b/i;
+                const scrollUp = /scroll\s*up|up\s*scroll|move\s*up|go\s*up\b/i;
+                if (scrollDown.test(input)) {
+                    return { action: 'scroll', direction: 'down', confidence: 0.92 };
+                }
+                if (scrollUp.test(input)) {
+                    return { action: 'scroll', direction: 'up', confidence: 0.92 };
+                }
 
-  document.getElementById("log").innerText =
-    "AI understood: " + JSON.stringify(command);
+                // --- 2) NAVIGATE (go home, go back, go forward, dashboard, profile) ---
+                const goHome = /\b(go\s*home|home\s*page|take\s*me\s*home|navigate\s*home|go\s*to\s*home)\b/i;
+                const goBack = /\b(go\s*back|back\s*page|navigate\s*back)\b/i;
+                const goForward = /\b(go\s*forward|forward\s*page|navigate\s*forward)\b/i;
+                const goDashboard = /\b(dashboard|go\s*to\s*dashboard|open\s*dashboard)\b/i;
+                const goProfile = /\b(profile|go\s*to\s*profile|open\s*profile)\b/i;
 
-  switch (command.action) {
+                if (goHome.test(input)) {
+                    return { action: 'navigate', target: 'home', confidence: 0.94 };
+                }
+                if (goBack.test(input)) {
+                    return { action: 'navigate', target: 'back', confidence: 0.92 };
+                }
+                if (goForward.test(input)) {
+                    return { action: 'navigate', target: 'forward', confidence: 0.92 };
+                }
+                if (goDashboard.test(input)) {
+                    return { action: 'navigate', target: 'dashboard', confidence: 0.93 };
+                }
+                if (goProfile.test(input)) {
+                    return { action: 'navigate', target: 'profile', confidence: 0.93 };
+                }
 
-    case "open":
-      if (command.target === "youtube") {
-        window.open("https://youtube.com", "_blank");
-      }
-      if (command.target === "google") {
-        window.open("https://google.com", "_blank");
-      }
-      break;
+                // --- 3) OPEN (youtube, google, facebook, etc.) ---
+                const openYt = /\b(open\s*youtube|youtube\s*open|go\s*to\s*youtube|launch\s*youtube|yt\b)/i;
+                const openGoogle = /\b(open\s*google|google\s*open|go\s*to\s*google|launch\s*google|search\s*google\s*for)/i;
+                const openFb = /\b(open\s*facebook|facebook\s*open|go\s*to\s*facebook|launch\s*facebook|fb\b)/i;
+                const openHome = /\b(open\s*home|home\s*page|go\s*to\s*home|launch\s*home|open\s*dashboard)\b/i;
 
-    case "play":
-      window.open(
-        "https://www.youtube.com/results?search_query=" +
-          encodeURIComponent(command.query),
-        "_blank"
-      );
-      break;
+                if (openYt.test(input)) {
+                    return { action: 'open', target: 'youtube', confidence: 0.97 };
+                }
+                if (openGoogle.test(input)) {
+                    return { action: 'open', target: 'google', confidence: 0.97 };
+                }
+                if (openFb.test(input)) {
+                    return { action: 'open', target: 'facebook', confidence: 0.96 };
+                }
+                if (openHome.test(input)) {
+                    return { action: 'open', target: 'home', confidence: 0.93 };
+                }
 
-    case "search":
-      window.open(
-        "https://www.google.com/search?q=" +
-          encodeURIComponent(command.query),
-        "_blank"
-      );
-      break;
+                // --- 4) PLAY (music / video) ---
+                // "play X on youtube", "play X", "start X", "listen to X"
+                const playMatch = input.match(
+                    /\b(play|start|listen\s*to|let's\s*hear|put\s*on)\s+(.+?)(?:\s+on\s+youtube|\s+on\s+yt|\s+in\s+youtube)?$/i
+                );
+                if (playMatch) {
+                    let query = playMatch[2].trim();
+                    // if query is empty or just "song" / "music", use a default
+                    if (!query || query.length < 2 || /^(song|music|video|that|it)$/i.test(query)) {
+                        // check if we have a last command with query
+                        if (lastCommand && lastCommand.action === 'play' && lastCommand.query) {
+                            return { action: 'play', query: lastCommand.query, confidence: 0.65, note: 'repeated' };
+                        }
+                        query = 'music';
+                    }
+                    // detect if target is youtube
+                    const hasYt = /on\s+youtube|on\s+yt|in\s+youtube/i.test(input);
+                    const result = { action: 'play', query: query, confidence: 0.95 };
+                    if (hasYt) result.target = 'youtube';
+                    return result;
+                }
 
-    case "scroll":
-      if (command.direction === "down") window.scrollBy(0, 500);
-      if (command.direction === "up") window.scrollBy(0, -500);
-      break;
+                // --- 5) SEARCH (general web search) ---
+                // "search X", "find X", "look up X", "show me X"
+                const searchMatch = input.match(
+                    /\b(search|find|look\s*up|show\s+me|get|tell\s+me\s+about|what\s+is|who\s+is|where\s+is)\s+(.+)$/i
+                );
+                if (searchMatch) {
+                    let query = searchMatch[2].trim();
+                    if (!query || query.length < 2) {
+                        return { action: 'search', query: 'web', confidence: 0.5 };
+                    }
+                    return { action: 'search', query: query, confidence: 0.94 };
+                }
 
-    case "home":
-      window.location.href = "/";
-      break;
+                // --- 6) "repeat" / "that again" / "say that again" ---
+                if (/\b(again|repeat|say\s+that\s+again|one\s+more\s+time|replay)\b/i.test(input)) {
+                    if (lastCommand) {
+                        return { ...lastCommand, confidence: 0.7, note: 'repeated' };
+                    }
+                    return { action: 'unknown', confidence: 0.3, input: raw };
+                }
 
-    default:
-      alert("I didn't understand that 😅");
-  }
-}
+                // --- 7) "refresh" / "reload" ---
+                if (/\b(refresh|reload|update\s+page)\b/i.test(input)) {
+                    return { action: 'system', command: 'refresh', confidence: 0.9 };
+                }
 
-/* =========================
-   🎤 VOICE INPUT
-========================= */
+                // --- 8) "stop" / "cancel" ---
+                if (/\b(stop|cancel|abort|quit|exit)\b/i.test(input)) {
+                    return { action: 'system', command: 'stop', confidence: 0.88 };
+                }
 
-function startVoice() {
-  const SpeechRecognition =
-    window.SpeechRecognition || window.webkitSpeechRecognition;
+                // --- 9) "clear" / "reset" ---
+                if (/\b(clear|reset|empty)\b/i.test(input)) {
+                    return { action: 'system', command: 'clear', confidence: 0.85 };
+                }
 
-  if (!SpeechRecognition) {
-    alert("Speech API not supported in this browser");
-    return;
-  }
+                // --- 10) FALLBACK: unknown but we still keep the input ---
+                return { action: 'unknown', confidence: 0.2, input: raw };
+            }
 
-  const recognition = new SpeechRecognition();
-  recognition.lang = "en-US";
-  recognition.interimResults = false;
+            // ============================================================
+            //  EXECUTE COMMAND (with side effects & feedback)
+            // ============================================================
+            function executeCommand(command) {
+                if (!command || command.action === 'unknown') {
+                    speak('Sorry, I did not understand that command.', 0.85);
+                    return;
+                }
 
-  recognition.start();
+                const action = command.action;
+                const target = command.target || '';
+                const query = command.query || '';
+                const direction = command.direction || '';
 
-  recognition.onresult = (e) => {
-    const text = e.results[0][0].transcript;
-    console.log("Heard:", text);
+                // Build a friendly spoken confirmation
+                let spoken = '';
 
-    const command = aiUnderstand(text);
-    execute(command);
-  };
-}
-</script>
+                switch (action) {
+                    case 'open':
+                        spoken = `Opening ${target}`;
+                        speak(spoken, 0.9);
+                        // Simulate navigation
+                        console.log(`[OPEN] target: ${target}`);
+                        break;
+
+                    case 'play':
+                        spoken = `Playing ${query}`;
+                        if (command.target === 'youtube') spoken += ' on YouTube';
+                        speak(spoken, 0.85);
+                        console.log(`[PLAY] query: "${query}" target: ${command.target || 'default'}`);
+                        break;
+
+                    case 'search':
+                        spoken = `Searching for ${query}`;
+                        speak(spoken, 0.9);
+                        console.log(`[SEARCH] query: "${query}"`);
+                        break;
+
+                    case 'scroll':
+                        spoken = `Scrolling ${direction}`;
+                        speak(spoken, 0.9);
+                        // Simulate scroll
+                        if (direction === 'down') {
+                            window.scrollBy({ top: 400, behavior: 'smooth' });
+                        } else if (direction === 'up') {
+                            window.scrollBy({ top: -400, behavior: 'smooth' });
+                        }
+                        console.log(`[SCROLL] direction: ${direction}`);
+                        break;
+
+                    case 'navigate':
+                        spoken = `Navigating to ${target}`;
+                        speak(spoken, 0.9);
+                        console.log(`[NAVIGATE] target: ${target}`);
+                        // Simulate navigation
+                        if (target === 'home') {
+                            window.scrollTo({ top: 0, behavior: 'smooth' });
+                        }
+                        break;
+
+                    case 'system':
+                        if (command.command === 'refresh') {
+                            spoken = 'Refreshing page';
+                            speak(spoken, 0.9);
+                            location.reload();
+                        } else if (command.command === 'stop') {
+                            spoken = 'Stopping';
+                            speak(spoken, 0.9);
+                            if (recognition) recognition.abort();
+                            setStatus('Stopped', '');
+                            isListening = false;
+                            micBtn.classList.remove('listening', 'error');
+                            appCard.classList.remove('listening');
+                        } else if (command.command === 'clear') {
+                            spoken = 'Clearing';
+                            speak(spoken, 0.9);
+                            setTranscript('');
+                            setCommandOutput(null);
+                            lastCommand = null;
+                        }
+                        console.log(`[SYSTEM] command: ${command.command}`);
+                        break;
+
+                    default:
+                        speak('Unknown command', 0.85);
+                        console.log(`[UNKNOWN] action: ${action}`);
+                }
+
+                // Store last command for "repeat" context
+                if (action !== 'unknown' && action !== 'system') {
+                    lastCommand = command;
+                }
+            }
+
+            // ============================================================
+            //  WEB SPEECH API SETUP
+            // ============================================================
+            function initSpeechRecognition() {
+                const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+                if (!SR) {
+                    setStatus('Not supported', 'error');
+                    micBtn.disabled = true;
+                    micBtn.title = 'Speech Recognition not supported in this browser';
+                    speak('Speech recognition is not supported in your browser.', 0.8);
+                    return null;
+                }
+
+                const rec = new SR();
+                rec.lang = 'en-US';
+                rec.continuous = false; // single utterance per trigger
+                rec.interimResults = true;
+                rec.maxAlternatives = 1;
+
+                // --- Event: onstart ---
+                rec.onstart = function() {
+                    isListening = true;
+                    micBtn.classList.add('listening');
+                    micBtn.classList.remove('error');
+                    appCard.classList.add('listening');
+                    setStatus('Listening...', 'active');
+                    setTranscript('🎤 Listening...', true);
+                    setCommandOutput(null);
+                };
+
+                // --- Event: onerror ---
+                rec.onerror = function(event) {
+                    console.warn('[SR] error:', event.error);
+                    if (event.error === 'not-allowed') {
+                        setStatus('Microphone denied', 'error');
+                        speak('Please allow microphone access.', 0.9);
+                        micBtn.classList.add('error');
+                        micBtn.classList.remove('listening');
+                        appCard.classList.remove('listening');
+                        isListening = false;
+                    } else if (event.error === 'no-speech') {
+                        setStatus('No speech', 'error');
+                        speak('I did not hear anything.', 0.85);
+                        micBtn.classList.remove('listening');
+                        appCard.classList.remove('listening');
+                        isListening = false;
+                        setTranscript('No speech detected', false);
+                    } else if (event.error === 'audio-capture') {
+                        setStatus('No microphone', 'error');
+                        speak('No microphone found.', 0.85);
+                        micBtn.classList.add('error');
+                        micBtn.classList.remove('listening');
+                        appCard.classList.remove('listening');
+                        isListening = false;
+                    } else {
+                        setStatus('Error: ' + event.error, 'error');
+                        micBtn.classList.remove('listening');
+                        appCard.classList.remove('listening');
+                        isListening = false;
+                    }
+                };
+
+                // --- Event: onend ---
+                rec.onend = function() {
+                    // If we're still in listening state but recognition ended,
+                    // it might be due to silence or a final result.
+                    // We handle this gracefully.
+                    if (isListening) {
+                        // If we haven't received a result, show a message.
+                        const currentText = transcriptText.textContent || '';
+                        if (currentText.includes('Listening...') || currentText.includes('No speech')) {
+                            setTranscript('No command detected', false);
+                            setStatus('Standby', '');
+                            speak('No command heard.', 0.85);
+                        }
+                        micBtn.classList.remove('listening');
+                        appCard.classList.remove('listening');
+                        isListening = false;
+                        setStatus('Standby', '');
+                    }
+                };
+
+                // --- Event: onresult ---
+                rec.onresult = function(event) {
+                    let finalText = '';
+                    let interimText = '';
+                    let isFinal = false;
+
+                    for (let i = event.resultIndex; i < event.results.length; i++) {
+                        const result = event.results[i];
+                        const transcript = result[0].transcript.trim();
+                        if (result.isFinal) {
+                            finalText = transcript;
+                            isFinal = true;
+                        } else {
+                            interimText = transcript;
+                        }
+                    }
+
+                    // Show interim
+                    if (interimText && !isFinal) {
+                        setTranscript(interimText, true);
+                        return;
+                    }
+
+                    // Final result
+                    if (finalText) {
+                        setTranscript(finalText, false);
+                        setStatus('Processing...', 'active');
+
+                        // Parse with our smart engine
+                        const command = parseCommand(finalText);
+                        setCommandOutput(command);
+
+                        // Execute
+                        executeCommand(command);
+
+                        // Update status based on result
+                        if (command.action === 'unknown') {
+                            setStatus('Unknown', 'error');
+                        } else {
+                            setStatus('Done ✓', 'success');
+                            setTimeout(() => {
+                                if (!isListening) setStatus('Standby', '');
+                            }, 1500);
+                        }
+
+                        // Stop listening after a successful command
+                        if (isListening) {
+                            try { rec.stop(); } catch (_) {}
+                            micBtn.classList.remove('listening');
+                            appCard.classList.remove('listening');
+                            isListening = false;
+                        }
+                    } else {
+                        // No final text
+                        setTranscript('No command detected', false);
+                        setStatus('Standby', '');
+                    }
+                };
+
+                return rec;
+            }
+
+            // ============================================================
+            //  TOGGLE MIC
+            // ============================================================
+            function toggleMic() {
+                if (!recognition) {
+                    recognition = initSpeechRecognition();
+                    if (!recognition) return;
+                }
+
+                if (isListening) {
+                    // Stop
+                    try {
+                        recognition.stop();
+                    } catch (_) {}
+                    micBtn.classList.remove('listening');
+                    appCard.classList.remove('listening');
+                    isListening = false;
+                    setStatus('Standby', '');
+                    return;
+                }
+
+                // Start
+                try {
+                    recognition.start();
+                    // Status will be set in onstart
+                } catch (err) {
+                    console.warn('[SR] start error:', err);
+                    if (err.message && err.message.includes('already started')) {
+                        // Attempt to reset
+                        try { recognition.abort(); } catch (_) {}
+                        setTimeout(() => {
+                            try { recognition.start(); } catch (e2) { console.warn(e2); }
+                        }, 200);
+                    } else {
+                        setStatus('Error starting', 'error');
+                        speak('Could not start microphone.', 0.85);
+                    }
+                }
+            }
+
+            // ============================================================
+            //  INIT
+            // ============================================================
+            function init() {
+                // Check support
+                const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+                if (!SR) {
+                    setStatus('Not supported', 'error');
+                    micBtn.disabled = true;
+                    micBtn.title = 'Speech recognition not available';
+                    speak('Your browser does not support voice commands.', 0.85);
+                    return;
+                }
+
+                recognition = initSpeechRecognition();
+                if (!recognition) return;
+
+                // Click handler
+                micBtn.addEventListener('click', toggleMic);
+
+                // Keyboard shortcut: Space or Enter on mic
+                micBtn.addEventListener('keydown', function(e) {
+                    if (e.key === ' ' || e.key === 'Enter') {
+                        e.preventDefault();
+                        toggleMic();
+                    }
+                });
+
+                setStatus('Standby', '');
+                setTranscript('');
+                setCommandOutput(null);
+                console.log('[Voice] Assistant ready. Click the mic to speak.');
+            }
+
+            // Run on DOM ready
+            if (document.readyState === 'loading') {
+                document.addEventListener('DOMContentLoaded', init);
+            } else {
+                init();
+            }
+
+            // ============================================================
+            //  KEYBOARD SHORTCUT: Ctrl+Shift+M (toggle mic)
+            // ============================================================
+            document.addEventListener('keydown', function(e) {
+                if (e.ctrlKey && e.shiftKey && (e.key === 'm' || e.key === 'M')) {
+                    e.preventDefault();
+                    toggleMic();
+                }
+            });
+
+        })();
+    </script>
 
 </body>
 </html>
