@@ -3,9 +3,8 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Jarvis · AI Voice Assistant</title>
+  <title>Darkranks · Wake‑Word AI</title>
   <style>
-    /* --- RESET & GLOBAL --- */
     * {
       margin: 0;
       padding: 0;
@@ -13,7 +12,7 @@
     }
 
     body {
-      font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
       background: #0b0e1a;
       min-height: 100vh;
       display: flex;
@@ -31,12 +30,16 @@
       border-radius: 44px;
       padding: 28px 24px 24px;
       border: 1px solid rgba(255, 255, 255, 0.05);
-      box-shadow: 0 40px 100px rgba(0, 0, 0, 0.8), inset 0 1px 0 rgba(255, 255, 255, 0.04);
+      box-shadow: 0 40px 100px rgba(0, 0, 0, 0.8);
       transition: box-shadow 0.3s ease;
     }
 
     .assistant-container.listening {
       box-shadow: 0 40px 100px rgba(0, 0, 0, 0.8), 0 0 0 2px rgba(99, 140, 255, 0.25);
+    }
+
+    .assistant-container.wake-active {
+      box-shadow: 0 40px 100px rgba(0, 0, 0, 0.8), 0 0 0 2px rgba(167, 139, 250, 0.3);
     }
 
     /* --- HEADER --- */
@@ -87,6 +90,12 @@
       animation: pulse-badge 1.8s ease-in-out infinite;
     }
 
+    .status-badge.wake {
+      background: rgba(167, 139, 250, 0.2);
+      color: #c4b5fd;
+      border-color: rgba(167, 139, 250, 0.25);
+    }
+
     .status-badge.success {
       background: rgba(52, 211, 153, 0.15);
       color: #34d399;
@@ -109,13 +118,68 @@
       }
     }
 
+    /* --- MODE TOGGLE --- */
+    .mode-toggle {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 12px;
+      justify-content: center;
+    }
+
+    .mode-toggle label {
+      font-size: 12px;
+      font-weight: 500;
+      color: rgba(255, 255, 255, 0.4);
+      cursor: pointer;
+      user-select: none;
+      transition: color 0.2s;
+    }
+
+    .mode-toggle label.active {
+      color: rgba(255, 255, 255, 0.8);
+    }
+
+    .toggle-switch {
+      position: relative;
+      width: 44px;
+      height: 24px;
+      background: rgba(255, 255, 255, 0.1);
+      border-radius: 12px;
+      cursor: pointer;
+      transition: background 0.3s;
+      border: 1px solid rgba(255, 255, 255, 0.05);
+    }
+
+    .toggle-switch.active {
+      background: rgba(99, 140, 255, 0.4);
+      border-color: rgba(99, 140, 255, 0.3);
+    }
+
+    .toggle-switch .knob {
+      position: absolute;
+      top: 2px;
+      left: 2px;
+      width: 18px;
+      height: 18px;
+      background: #fff;
+      border-radius: 50%;
+      transition: transform 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
+      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.4);
+    }
+
+    .toggle-switch.active .knob {
+      transform: translateX(20px);
+      background: #a78bfa;
+    }
+
     /* --- CHAT LOG --- */
     .chat-log {
       background: rgba(0, 0, 0, 0.25);
       border-radius: 20px;
       padding: 14px 12px;
-      min-height: 150px;
-      max-height: 220px;
+      min-height: 140px;
+      max-height: 200px;
       overflow-y: auto;
       margin-bottom: 12px;
       border: 1px solid rgba(255, 255, 255, 0.03);
@@ -124,9 +188,6 @@
 
     .chat-log::-webkit-scrollbar {
       width: 4px;
-    }
-    .chat-log::-webkit-scrollbar-track {
-      background: transparent;
     }
     .chat-log::-webkit-scrollbar-thumb {
       background: rgba(255, 255, 255, 0.12);
@@ -185,7 +246,6 @@
     .empty-chat {
       color: rgba(255, 255, 255, 0.12);
       font-style: italic;
-      font-weight: 300;
       text-align: center;
       padding: 16px 0;
       font-size: 13px;
@@ -202,14 +262,13 @@
       }
     }
 
-    /* --- COMMAND OUTPUT (JSON RESULT) --- */
+    /* --- COMMAND JSON --- */
     .command-panel {
       background: rgba(0, 0, 0, 0.4);
       border-radius: 16px;
-      padding: 12px 16px;
+      padding: 10px 16px;
       margin-bottom: 14px;
       border: 1px solid rgba(255, 255, 255, 0.04);
-      transition: border-color 0.2s;
     }
 
     .command-panel .label {
@@ -229,7 +288,7 @@
       word-break: break-word;
       line-height: 1.6;
       min-height: 28px;
-      max-height: 110px;
+      max-height: 100px;
       overflow-y: auto;
       scrollbar-width: thin;
     }
@@ -245,7 +304,6 @@
     .command-panel .json-output .empty {
       color: rgba(255, 255, 255, 0.15);
       font-style: italic;
-      font-weight: 300;
       font-family: Inter, sans-serif;
     }
 
@@ -267,24 +325,25 @@
       display: flex;
       justify-content: center;
       margin: 4px 0 14px;
+      gap: 20px;
+      align-items: center;
     }
 
     .mic-btn {
-      width: 92px;
-      height: 92px;
+      width: 76px;
+      height: 76px;
       border-radius: 50%;
       border: none;
       background: linear-gradient(135deg, #1a2340, #0f1628);
-      box-shadow: 0 12px 40px rgba(0, 0, 0, 0.6), inset 0 1px 0 rgba(255, 255, 255, 0.06);
+      box-shadow: 0 12px 40px rgba(0, 0, 0, 0.6);
       color: #fff;
-      font-size: 42px;
+      font-size: 34px;
       cursor: pointer;
       transition: all 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
       display: flex;
       align-items: center;
       justify-content: center;
       border: 1px solid rgba(255, 255, 255, 0.06);
-      position: relative;
     }
 
     .mic-btn:hover {
@@ -331,6 +390,15 @@
       }
     }
 
+    .wake-indicator {
+      font-size: 13px;
+      color: rgba(255, 255, 255, 0.2);
+      letter-spacing: 0.3px;
+    }
+    .wake-indicator.active {
+      color: #a78bfa;
+    }
+
     /* --- TIPS --- */
     .quick-tips {
       display: flex;
@@ -357,20 +425,19 @@
       color: rgba(255, 255, 255, 0.4);
     }
 
-    /* --- RESPONSIVE TWEAKS --- */
     @media (max-width: 600px) {
       .assistant-container {
         padding: 18px 12px 16px;
         border-radius: 32px;
       }
       .mic-btn {
-        width: 76px;
-        height: 76px;
-        font-size: 34px;
+        width: 64px;
+        height: 64px;
+        font-size: 28px;
       }
       .chat-log {
-        min-height: 120px;
-        max-height: 170px;
+        min-height: 100px;
+        max-height: 150px;
         padding: 10px 8px;
       }
       .bubble {
@@ -391,9 +458,9 @@
 
     @media (max-width: 400px) {
       .mic-btn {
-        width: 66px;
-        height: 66px;
-        font-size: 28px;
+        width: 56px;
+        height: 56px;
+        font-size: 24px;
       }
       .bubble {
         font-size: 12px;
@@ -411,36 +478,45 @@
   <div class="assistant-container" id="appContainer">
     <!-- HEADER -->
     <div class="header">
-      <h1>🧠 <span>Jarvis</span> AI</h1>
+      <h1>🧠 <span>Darkranks</span> AI</h1>
       <div class="status-badge" id="statusBadge">Standby</div>
+    </div>
+
+    <!-- MODE TOGGLE -->
+    <div class="mode-toggle">
+      <label id="modeLabelManual" class="active">🎙️ Push‑to‑talk</label>
+      <div class="toggle-switch" id="modeToggle">
+        <div class="knob"></div>
+      </div>
+      <label id="modeLabelWake">🔊 Wake‑word</label>
     </div>
 
     <!-- CHAT LOG -->
     <div class="chat-log" id="chatLog">
-      <div class="empty-chat">✨ Tap the mic and speak...</div>
+      <div class="empty-chat">✨ Say "Hey Darkranks" or tap the mic...</div>
     </div>
 
-    <!-- COMMAND JSON OUTPUT -->
+    <!-- COMMAND JSON -->
     <div class="command-panel">
       <div class="label">📦 parsed command (result)</div>
       <div class="json-output" id="jsonOutput"><span class="empty">Waiting for your voice...</span></div>
     </div>
 
-    <!-- MIC -->
+    <!-- MIC + WAKE INDICATOR -->
     <div class="mic-wrapper">
       <button class="mic-btn" id="micBtn" aria-label="Toggle microphone">
         <span class="mic-icon">🎤</span>
       </button>
+      <span class="wake-indicator" id="wakeIndicator">🔇 idle</span>
     </div>
 
     <!-- TIPS -->
     <div class="quick-tips">
-      <span>🎬 "Open YouTube"</span>
-      <span>🎵 "Play Shape of You"</span>
-      <span>🔍 "Search AI news"</span>
-      <span>⏰ "What time is it?"</span>
+      <span>🔊 "Hey Darkranks, open YouTube"</span>
+      <span>🎵 "Hey Darkranks, play Shape of You"</span>
+      <span>🔍 "Hey Darkranks, search AI news"</span>
+      <span>⏰ "Hey Darkranks, what time is it?"</span>
       <span>🧮 "25 * 8"</span>
-      <span>🏠 "Go home"</span>
     </div>
   </div>
 
@@ -456,18 +532,29 @@
       const chatLog = document.getElementById('chatLog');
       const jsonOutput = document.getElementById('jsonOutput');
       const appContainer = document.getElementById('appContainer');
+      const modeToggle = document.getElementById('modeToggle');
+      const modeLabelManual = document.getElementById('modeLabelManual');
+      const modeLabelWake = document.getElementById('modeLabelWake');
+      const wakeIndicator = document.getElementById('wakeIndicator');
 
       // ================================================================
       //  STATE
       // ================================================================
       let isListening = false;
       let recognition = null;
-      const context = {
+      let wakeMode = false; // false = push-to-talk, true = wake-word
+      let waitingForWake = true;
+      let commandBuffer = '';
+      let wakeDetected = false;
+      let lastFinalTranscript = '';
+      let context = {
         lastTarget: null,
         lastQuery: null,
         lastAction: null,
         lastFullCommand: null,
       };
+
+      const WAKE_WORD = 'hey darkranks';
 
       // ================================================================
       //  UI HELPERS
@@ -504,7 +591,6 @@
           jsonOutput.innerHTML = '<span class="empty">Waiting for your voice...</span>';
           return;
         }
-        // pretty print with basic syntax highlighting
         const jsonStr = JSON.stringify(command, null, 2);
         const highlighted = jsonStr
           .replace(/"([^"]+)":/g, '<span class="key">"$1"</span>:')
@@ -512,6 +598,15 @@
           .replace(/: (\d+\.?\d*)/g, ': <span class="number">$1</span>')
           .replace(/: (true|false)/g, ': <span class="boolean">$1</span>');
         jsonOutput.innerHTML = highlighted;
+      }
+
+      function updateWakeIndicator(text, isActive) {
+        wakeIndicator.textContent = text || '🔇 idle';
+        if (isActive) {
+          wakeIndicator.classList.add('active');
+        } else {
+          wakeIndicator.classList.remove('active');
+        }
       }
 
       // ================================================================
@@ -633,7 +728,7 @@
       }
 
       // ================================================================
-      //  🧠 SUPER SMART COMMAND ENGINE
+      //  🧠 SUPER SMART COMMAND ENGINE (same as before)
       // ================================================================
       function parseCommand(raw) {
         if (!raw || typeof raw !== 'string') {
@@ -782,26 +877,23 @@
       }
 
       // ================================================================
-      //  EXECUTE COMMAND (side effects + display)
+      //  EXECUTE COMMAND
       // ================================================================
       function executeCommand(command) {
         if (!command) return;
         context.lastFullCommand = command;
-
-        // 1) Always show the parsed JSON in the panel
         updateCommandDisplay(command);
 
         const action = command.action;
         let spokenResponse = '';
 
-        // 2) Handle each action
         switch (action) {
           case 'greeting':
             spokenResponse = generateResponse('greeting');
             addMessage('assistant', spokenResponse);
             speak(spokenResponse, 0.9);
             setStatus('Done ✓', 'success');
-            setTimeout(() => setStatus('Standby', ''), 1200);
+            setTimeout(() => setStatus(wakeMode ? 'Wake mode' : 'Standby', wakeMode ? 'wake' : ''), 1200);
             return;
 
           case 'time':
@@ -809,7 +901,7 @@
             addMessage('assistant', spokenResponse);
             speak(spokenResponse, 0.9);
             setStatus('Done ✓', 'success');
-            setTimeout(() => setStatus('Standby', ''), 1200);
+            setTimeout(() => setStatus(wakeMode ? 'Wake mode' : 'Standby', wakeMode ? 'wake' : ''), 1200);
             return;
 
           case 'math':
@@ -817,7 +909,7 @@
             addMessage('assistant', spokenResponse);
             speak(spokenResponse, 0.9);
             setStatus('Done ✓', 'success');
-            setTimeout(() => setStatus('Standby', ''), 1200);
+            setTimeout(() => setStatus(wakeMode ? 'Wake mode' : 'Standby', wakeMode ? 'wake' : ''), 1200);
             return;
 
           case 'open': {
@@ -832,7 +924,7 @@
             context.lastAction = 'open';
             context.lastTarget = target;
             setStatus('Done ✓', 'success');
-            setTimeout(() => setStatus('Standby', ''), 1200);
+            setTimeout(() => setStatus(wakeMode ? 'Wake mode' : 'Standby', wakeMode ? 'wake' : ''), 1200);
             return;
           }
 
@@ -849,7 +941,7 @@
             context.lastQuery = query;
             context.lastTarget = target || 'default';
             setStatus('Done ✓', 'success');
-            setTimeout(() => setStatus('Standby', ''), 1200);
+            setTimeout(() => setStatus(wakeMode ? 'Wake mode' : 'Standby', wakeMode ? 'wake' : ''), 1200);
             return;
           }
 
@@ -867,7 +959,7 @@
             context.lastAction = 'search';
             context.lastQuery = query;
             setStatus('Done ✓', 'success');
-            setTimeout(() => setStatus('Standby', ''), 1200);
+            setTimeout(() => setStatus(wakeMode ? 'Wake mode' : 'Standby', wakeMode ? 'wake' : ''), 1200);
             return;
           }
 
@@ -880,7 +972,7 @@
             else window.scrollBy({ top: -500, behavior: 'smooth' });
             context.lastAction = 'scroll';
             setStatus('Done ✓', 'success');
-            setTimeout(() => setStatus('Standby', ''), 1200);
+            setTimeout(() => setStatus(wakeMode ? 'Wake mode' : 'Standby', wakeMode ? 'wake' : ''), 1200);
             return;
           }
 
@@ -895,7 +987,7 @@
             context.lastAction = 'navigate';
             context.lastTarget = target;
             setStatus('Done ✓', 'success');
-            setTimeout(() => setStatus('Standby', ''), 1200);
+            setTimeout(() => setStatus(wakeMode ? 'Wake mode' : 'Standby', wakeMode ? 'wake' : ''), 1200);
             return;
           }
 
@@ -911,14 +1003,15 @@
               micBtn.classList.remove('listening', 'error');
               appContainer.classList.remove('listening');
               setStatus('Stopped', '');
+              updateWakeIndicator('🔇 idle', false);
             } else if (cmd === 'clear') {
-              chatLog.innerHTML = `<div class="empty-chat">✨ Conversation cleared. Tap the mic to start.</div>`;
+              chatLog.innerHTML = `<div class="empty-chat">✨ Conversation cleared. Say "Hey Darkranks" or tap the mic.</div>`;
               updateCommandDisplay(null);
             }
             context.lastAction = 'system';
             if (cmd !== 'stop' && cmd !== 'clear') {
               setStatus('Done ✓', 'success');
-              setTimeout(() => setStatus('Standby', ''), 1200);
+              setTimeout(() => setStatus(wakeMode ? 'Wake mode' : 'Standby', wakeMode ? 'wake' : ''), 1200);
             }
             return;
           }
@@ -929,8 +1022,88 @@
             addMessage('assistant', spokenResponse);
             speak(spokenResponse, 0.85);
             setStatus('Unknown', 'error');
-            setTimeout(() => setStatus('Standby', ''), 1500);
+            setTimeout(() => setStatus(wakeMode ? 'Wake mode' : 'Standby', wakeMode ? 'wake' : ''), 1500);
             return;
+          }
+        }
+      }
+
+      // ================================================================
+      //  WAKE-WORD HANDLING
+      // ================================================================
+      function processWakeAndCommand(transcript) {
+        if (!transcript) return;
+
+        const lower = transcript.toLowerCase().trim();
+
+        // If wake mode is off, just process as normal command (manual)
+        if (!wakeMode) {
+          // In manual mode, we just process the whole transcript
+          const command = parseCommand(transcript);
+          executeCommand(command);
+          return;
+        }
+
+        // Wake mode: check for wake word
+        const index = lower.indexOf(WAKE_WORD);
+        if (index !== -1) {
+          // wake word found
+          const afterWake = transcript.substring(index + WAKE_WORD.length).trim();
+          if (afterWake.length > 0) {
+            // We have a command after wake word
+            const command = parseCommand(afterWake);
+            executeCommand(command);
+            updateWakeIndicator('🎤 command heard', false);
+            setStatus('Wake mode', 'wake');
+          } else {
+            // Only wake word, no command yet – we wait for next utterance
+            updateWakeIndicator('🔊 waiting for command...', true);
+            setStatus('Listening...', 'active');
+            // We'll accumulate subsequent transcripts until we get a command
+            commandBuffer = '';
+            wakeDetected = true;
+          }
+        } else {
+          // No wake word in this transcript
+          if (wakeDetected) {
+            // We are in "waiting for command" state, add to buffer
+            commandBuffer += ' ' + transcript;
+            // If buffer has content, we can try to parse it
+            const trimmed = commandBuffer.trim();
+            if (trimmed.length > 0) {
+              // Check if it looks like a command
+              const testCmd = parseCommand(trimmed);
+              if (testCmd.action !== 'unknown' && testCmd.confidence > 0.3) {
+                // Good enough, execute
+                executeCommand(testCmd);
+                wakeDetected = false;
+                commandBuffer = '';
+                updateWakeIndicator('🎤 command executed', false);
+                setStatus('Done ✓', 'success');
+                setTimeout(() => setStatus('Wake mode', 'wake'), 1200);
+              } else {
+                // Keep buffering (we'll wait for more speech)
+                // But we need to avoid accumulating forever, so we can set a timeout
+                // We'll use a simple reset if too long
+                clearTimeout(window.wakeTimeout);
+                window.wakeTimeout = setTimeout(() => {
+                  if (wakeDetected) {
+                    // No command heard, reset
+                    wakeDetected = false;
+                    commandBuffer = '';
+                    updateWakeIndicator('🔇 timeout', false);
+                    setStatus('Wake mode', 'wake');
+                    addMessage('assistant', '⏳ No command heard, try again.');
+                    speak('I didn\'t hear a command.', 0.85);
+                  }
+                }, 3000);
+              }
+            }
+          } else {
+            // No wake word and not waiting – ignore (in wake mode)
+            // But we can show that we're listening
+            updateWakeIndicator('🔊 listening...', true);
+            setStatus('Wake mode', 'wake');
           }
         }
       }
@@ -950,7 +1123,7 @@
 
         const rec = new SR();
         rec.lang = 'en-US';
-        rec.continuous = false;
+        rec.continuous = true; // keep listening
         rec.interimResults = true;
         rec.maxAlternatives = 1;
 
@@ -959,7 +1132,12 @@
           micBtn.classList.add('listening');
           micBtn.classList.remove('error');
           appContainer.classList.add('listening');
-          setStatus('Listening...', 'active');
+          if (wakeMode) {
+            setStatus('Wake mode', 'wake');
+            updateWakeIndicator('🔊 listening...', true);
+          } else {
+            setStatus('Listening...', 'active');
+          }
         };
 
         rec.onerror = function(event) {
@@ -970,8 +1148,10 @@
             micBtn.classList.add('error');
           } else if (event.error === 'no-speech') {
             setStatus('No speech', 'error');
-            speak('I did not hear anything.', 0.85);
-            addMessage('assistant', '🔇 No speech detected.');
+            // In wake mode we don't want to spam, just reset
+            if (wakeMode) {
+              setStatus('Wake mode', 'wake');
+            }
           } else if (event.error === 'audio-capture') {
             setStatus('No mic', 'error');
             speak('No microphone found.', 0.85);
@@ -982,36 +1162,85 @@
           micBtn.classList.remove('listening');
           appContainer.classList.remove('listening');
           isListening = false;
+          if (wakeMode) {
+            updateWakeIndicator('🔇 error', false);
+          }
         };
 
         rec.onend = function() {
+          // In continuous mode, this may not happen unless stopped or error
           if (isListening) {
-            micBtn.classList.remove('listening');
-            appContainer.classList.remove('listening');
-            isListening = false;
-            setStatus('Standby', '');
+            // If we are in wake mode and not manually stopped, we might want to restart
+            if (wakeMode) {
+              // The recognition may have ended due to a temporary issue, restart
+              try {
+                rec.start();
+              } catch (_) {}
+            } else {
+              micBtn.classList.remove('listening');
+              appContainer.classList.remove('listening');
+              isListening = false;
+              setStatus('Standby', '');
+            }
           }
         };
 
         rec.onresult = function(event) {
           let finalText = '';
+          let interimText = '';
+
           for (let i = event.resultIndex; i < event.results.length; i++) {
             const result = event.results[i];
             const transcript = result[0].transcript.trim();
-            if (result.isFinal) finalText = transcript;
+            if (result.isFinal) {
+              finalText = transcript;
+            } else {
+              interimText = transcript;
+            }
           }
 
-          if (finalText) {
-            addMessage('user', finalText);
-            setStatus('Processing...', 'active');
-            const command = parseCommand(finalText);
-            executeCommand(command);
-            // stop listening after final result
-            if (isListening) {
-              try { rec.stop(); } catch (_) {}
-              micBtn.classList.remove('listening');
-              appContainer.classList.remove('listening');
-              isListening = false;
+          // Use final if available, else interim for real-time feedback
+          const text = finalText || interimText;
+
+          if (text) {
+            if (wakeMode) {
+              // In wake mode, we show interim in the chat as user input? We'll show only final to avoid clutter.
+              // But we can show the wake indicator status.
+              if (finalText) {
+                // If final, process
+                processWakeAndCommand(finalText);
+                // Also add user message if it contains wake word or we have a command
+                if (finalText.toLowerCase().includes(WAKE_WORD)) {
+                  addMessage('user', finalText);
+                } else if (wakeDetected && commandBuffer) {
+                  // we might want to show the accumulated command later
+                }
+              } else {
+                // Interim – just update indicator
+                if (text.toLowerCase().includes(WAKE_WORD)) {
+                  updateWakeIndicator('🔊 wake word detected!', true);
+                  setStatus('Wake mode', 'wake');
+                } else if (wakeDetected) {
+                  updateWakeIndicator('🗣️ hearing command...', true);
+                }
+              }
+            } else {
+              // Manual mode: process every final result
+              if (finalText) {
+                addMessage('user', finalText);
+                const command = parseCommand(finalText);
+                executeCommand(command);
+                // Stop listening after command if not continuous? But we are continuous now.
+                // In manual mode, we want to stop after a command (like push-to-talk)
+                // We'll stop after processing
+                if (isListening) {
+                  try { rec.stop(); } catch (_) {}
+                  micBtn.classList.remove('listening');
+                  appContainer.classList.remove('listening');
+                  isListening = false;
+                  setStatus('Standby', '');
+                }
+              }
             }
           }
         };
@@ -1020,33 +1249,106 @@
       }
 
       // ================================================================
-      //  TOGGLE MIC
+      //  TOGGLE MIC (Manual)
       // ================================================================
       function toggleMic() {
-        if (!recognition) {
-          recognition = initSpeechRecognition();
-          if (!recognition) return;
+        if (wakeMode) {
+          // In wake mode, we don't want to stop/start manually; we keep continuous
+          // But clicking the mic can toggle the entire listening state
+          if (isListening) {
+            // Stop everything
+            if (recognition) {
+              try { recognition.stop(); } catch (_) {}
+            }
+            isListening = false;
+            micBtn.classList.remove('listening');
+            appContainer.classList.remove('listening');
+            setStatus('Standby', '');
+            updateWakeIndicator('🔇 paused', false);
+          } else {
+            // Start
+            if (!recognition) {
+              recognition = initSpeechRecognition();
+              if (!recognition) return;
+            }
+            try {
+              recognition.start();
+            } catch (err) {
+              console.warn(err);
+            }
+          }
+          return;
         }
 
+        // Manual mode: toggle on/off (push-to-talk)
         if (isListening) {
-          try { recognition.stop(); } catch (_) {}
+          if (recognition) {
+            try { recognition.stop(); } catch (_) {}
+          }
+          isListening = false;
           micBtn.classList.remove('listening');
           appContainer.classList.remove('listening');
-          isListening = false;
           setStatus('Standby', '');
           return;
         }
 
+        if (!recognition) {
+          recognition = initSpeechRecognition();
+          if (!recognition) return;
+        }
         try {
           recognition.start();
         } catch (err) {
-          console.warn('[SR] start error:', err);
+          console.warn(err);
           if (err.message && err.message.includes('already started')) {
             try { recognition.abort(); } catch (_) {}
             setTimeout(() => { try { recognition.start(); } catch (e2) { console.warn(e2); } }, 250);
           } else {
             setStatus('Error starting', 'error');
-            speak('Could not start the microphone.', 0.85);
+            speak('Could not start microphone.', 0.85);
+          }
+        }
+      }
+
+      // ================================================================
+      //  MODE TOGGLE
+      // ================================================================
+      function toggleMode() {
+        wakeMode = !wakeMode;
+        modeToggle.classList.toggle('active', wakeMode);
+        modeLabelManual.classList.toggle('active', !wakeMode);
+        modeLabelWake.classList.toggle('active', wakeMode);
+
+        // Reset wake state
+        wakeDetected = false;
+        commandBuffer = '';
+        updateWakeIndicator(wakeMode ? '🔊 listening...' : '🔇 idle', wakeMode);
+
+        // If currently listening, restart recognition with new mode
+        if (isListening) {
+          if (recognition) {
+            try { recognition.stop(); } catch (_) {}
+          }
+          isListening = false;
+          micBtn.classList.remove('listening');
+          appContainer.classList.remove('listening');
+          setStatus('Standby', '');
+          // Restart automatically if wake mode
+          if (wakeMode) {
+            setTimeout(() => {
+              if (!recognition) {
+                recognition = initSpeechRecognition();
+                if (!recognition) return;
+              }
+              try { recognition.start(); } catch (_) {}
+            }, 300);
+          }
+        } else {
+          // If not listening, just update status
+          if (wakeMode) {
+            setStatus('Wake mode', 'wake');
+          } else {
+            setStatus('Standby', '');
           }
         }
       }
@@ -1073,6 +1375,10 @@
             toggleMic(); }
         });
 
+        // Mode toggle
+        modeToggle.addEventListener('click', toggleMode);
+
+        // Keyboard shortcut: Ctrl+Shift+M toggles mic
         document.addEventListener('keydown', function(e) {
           if (e.ctrlKey && e.shiftKey && (e.key === 'm' || e.key === 'M')) {
             e.preventDefault();
@@ -1081,9 +1387,19 @@
         });
 
         setStatus('Standby', '');
-        addMessage('assistant', '👋 Hi! Click the mic or press Ctrl+Shift+M and say something.');
+        addMessage('assistant', '👋 Say "Hey Darkranks" (wake mode) or tap the mic.');
         updateCommandDisplay(null);
-        console.log('[Jarvis] Ready.');
+        updateWakeIndicator('🔇 idle', false);
+
+        // Start in wake mode by default? We'll start in manual, user can switch.
+        // But we can start with wake mode on if user wants. Let's default to manual.
+        // We'll set the toggle to off.
+        modeToggle.classList.remove('active');
+        modeLabelManual.classList.add('active');
+        modeLabelWake.classList.remove('active');
+        wakeMode = false;
+
+        console.log('[Darkranks] Ready. Toggle wake mode or press mic.');
       }
 
       if (document.readyState === 'loading') {
