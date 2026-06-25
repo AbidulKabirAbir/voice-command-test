@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.5, user-scalable=yes, viewport-fit=cover">
-    <title>DarkRanks ULTRA · Premium Streaming</title>
+    <title>DarkRanks ULTRA · Voice AI</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,400;14..32,500;14..32,600;14..32,700;14..32,800;14..32,900&display=swap" rel="stylesheet" />
     <script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
@@ -95,7 +95,6 @@
         .logo-text span:first-child { background: linear-gradient(135deg, #fff, #00f2fe); -webkit-background-clip: text; background-clip: text; color: transparent; }
         .logo-text span:last-child { color: #fa4b6e; }
 
-        /* Source badge and live count – separate */
         .source-badge-wrap {
             display: flex;
             align-items: center;
@@ -178,7 +177,6 @@
             gap: 10px;
             flex-wrap: wrap;
         }
-        /* Time and date stacked */
         .time-date-wrap {
             display: flex;
             flex-direction: column;
@@ -210,7 +208,6 @@
         }
         .date-display i { font-size: 10px; color: #00f2fe; }
 
-        /* ===== PROFILE & SETTINGS (right side, fixed) ===== */
         .profile-wrap {
             display: flex;
             align-items: center;
@@ -272,7 +269,53 @@
             border: 2px solid #0a0a14;
         }
 
-        /* Profile dropdown – z-index high */
+        /* Mic button (added beside settings) */
+        .mic-toggle-btn {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            background: rgba(255,255,255,0.04);
+            border: none;
+            color: #9aa8b9;
+            font-size: 18px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+            position: relative;
+        }
+        .mic-toggle-btn:hover {
+            background: rgba(0,242,254,0.12);
+            color: #00f2fe;
+            transform: scale(1.05);
+        }
+        .mic-toggle-btn.listening {
+            color: #fa4b6e;
+            background: rgba(250,75,110,0.15);
+            animation: micPulse 1.5s infinite;
+        }
+        @keyframes micPulse {
+            0% { box-shadow: 0 0 0 0 rgba(250,75,110,0.4); }
+            70% { box-shadow: 0 0 0 12px rgba(250,75,110,0); }
+            100% { box-shadow: 0 0 0 0 rgba(250,75,110,0); }
+        }
+        .mic-toggle-btn .wake-indicator {
+            position: absolute;
+            bottom: -4px;
+            right: -4px;
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            background: #4ade80;
+            border: 2px solid #0a0a14;
+            transition: background 0.3s;
+        }
+        .mic-toggle-btn.listening .wake-indicator {
+            background: #fa4b6e;
+        }
+
         .profile-dropdown {
             position: absolute;
             top: calc(100% + 8px);
@@ -393,7 +436,7 @@
             margin: 6px 0;
         }
 
-        /* ===== SETTINGS OVERLAY ===== */
+        /* Settings overlay etc – unchanged */
         .settings-overlay {
             position: fixed;
             inset: 0;
@@ -516,7 +559,6 @@
             font-size: 14px;
         }
 
-        /* ===== PROFILE OVERLAY ===== */
         .profile-overlay {
             position: fixed;
             inset: 0;
@@ -685,7 +727,7 @@
             font-size: 12px;
         }
 
-        /* ===== REST OF ORIGINAL LAYOUT (unchanged) ===== */
+        /* Original main content – unchanged */
         .main-content { display: flex; flex: 1; padding: 20px 28px; gap: 28px; height: calc(100vh - 80px); overflow: hidden; position: relative; }
         .player-container { flex: 2.2; display: flex; flex-direction: column; gap: 12px; min-width: 0; height: 100%; overflow-y: auto; margin-top: -10px; }
         .video-wrapper {
@@ -1152,8 +1194,6 @@
         .yt-load-more button:hover { background: #00f2fe; color: #000; border-color: #00f2fe; }
         .yt-load-more button:disabled { opacity: 0.4; cursor: not-allowed; }
 
-        /* Sleep timer removed – no styles needed */
-
         .control-btn.fav-btn.active { color: #fa4b6e; }
         .control-btn.fav-btn.active:hover { background: #fa4b6e; color: #fff; }
 
@@ -1211,206 +1251,10 @@
             .profile-panel .profile-stats { grid-template-columns: 1fr; }
             .settings-panel .settings-grid { grid-template-columns: 1fr; }
             .profile-wrap .settings-icon { display: none; }
+            .mic-toggle-btn { display: none; } /* hide mic on very small? optional */
         }
         @media (max-width: 400px) {
             .badge-group .time-display { display: none; }
-        }
-
-        /* ===== NEW AI CHAT STYLES (appended, no changes to original) ===== */
-        .ai-chat-toggle {
-            position: fixed;
-            bottom: 28px;
-            right: 120px;
-            width: 60px;
-            height: 60px;
-            background: linear-gradient(145deg, #a78bfa, #7c3aed);
-            border: none;
-            border-radius: 50%;
-            color: #fff;
-            font-size: 28px;
-            cursor: pointer;
-            z-index: 9999;
-            box-shadow: 0 8px 30px rgba(124, 58, 237, 0.5);
-            transition: all 0.3s ease;
-        }
-        .ai-chat-toggle:hover {
-            transform: scale(1.08);
-            box-shadow: 0 8px 40px rgba(124, 58, 237, 0.7);
-        }
-        .ai-chat-toggle.hidden { opacity: 0; pointer-events: none; }
-
-        .ai-chat-panel {
-            position: fixed;
-            bottom: 100px;
-            right: 20px;
-            width: 380px;
-            max-height: 70vh;
-            background: rgba(12, 12, 24, 0.96);
-            backdrop-filter: blur(32px);
-            border: 1px solid rgba(167, 139, 250, 0.2);
-            border-radius: 24px;
-            box-shadow: 0 20px 60px rgba(0,0,0,0.8);
-            display: none;
-            flex-direction: column;
-            overflow: hidden;
-            z-index: 9998;
-            transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
-        }
-        .ai-chat-panel.open {
-            display: flex;
-            animation: slideUp 0.3s ease-out;
-        }
-        @keyframes slideUp {
-            from { opacity: 0; transform: translateY(20px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-        .ai-chat-header {
-            padding: 14px 18px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            border-bottom: 1px solid rgba(255,255,255,0.06);
-            background: rgba(0,0,0,0.3);
-        }
-        .ai-chat-header h3 {
-            font-size: 16px;
-            font-weight: 700;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            color: #eef2ff;
-        }
-        .ai-chat-header h3 i { color: #a78bfa; }
-        .ai-chat-header .close-chat {
-            background: none;
-            border: none;
-            color: #9aa8b9;
-            font-size: 20px;
-            cursor: pointer;
-            transition: 0.2s;
-            padding: 4px 8px;
-            border-radius: 8px;
-        }
-        .ai-chat-header .close-chat:hover {
-            background: rgba(250,75,110,0.2);
-            color: #fa4b6e;
-        }
-
-        .ai-chat-messages {
-            flex: 1;
-            overflow-y: auto;
-            padding: 16px 18px;
-            max-height: 45vh;
-            scroll-behavior: smooth;
-        }
-        .ai-chat-messages::-webkit-scrollbar { width: 4px; }
-        .ai-chat-messages::-webkit-scrollbar-thumb { background: #a78bfa; border-radius: 10px; }
-
-        .ai-msg {
-            margin-bottom: 12px;
-            animation: fadeIn 0.25s both;
-        }
-        .ai-msg.user { text-align: right; }
-        .ai-msg.bot { text-align: left; }
-        .ai-msg .bubble {
-            display: inline-block;
-            max-width: 85%;
-            padding: 8px 14px;
-            border-radius: 16px;
-            font-size: 14px;
-            line-height: 1.5;
-            word-break: break-word;
-        }
-        .ai-msg.user .bubble {
-            background: linear-gradient(135deg, #2a3b6b, #1f2a4a);
-            border-bottom-right-radius: 5px;
-            color: #eef2ff;
-        }
-        .ai-msg.bot .bubble {
-            background: rgba(255,255,255,0.06);
-            border-bottom-left-radius: 5px;
-            border: 1px solid rgba(255,255,255,0.04);
-            color: #eef2ff;
-        }
-        .ai-msg .time {
-            font-size: 9px;
-            color: rgba(255,255,255,0.2);
-            margin-top: 4px;
-        }
-        .ai-msg.user .time { text-align: right; padding-right: 4px; }
-        .ai-msg.bot .time { padding-left: 4px; }
-
-        .ai-chat-input-area {
-            display: flex;
-            gap: 8px;
-            padding: 12px 16px;
-            border-top: 1px solid rgba(255,255,255,0.06);
-            background: rgba(0,0,0,0.2);
-        }
-        .ai-chat-input-area input {
-            flex: 1;
-            background: rgba(255,255,255,0.06);
-            border: 1px solid rgba(255,255,255,0.08);
-            border-radius: 40px;
-            padding: 10px 16px;
-            color: #fff;
-            font-size: 14px;
-            outline: none;
-        }
-        .ai-chat-input-area input:focus { border-color: #a78bfa; }
-        .ai-chat-input-area button {
-            background: linear-gradient(135deg, #a78bfa, #7c3aed);
-            border: none;
-            border-radius: 50%;
-            width: 42px;
-            height: 42px;
-            color: #fff;
-            font-size: 16px;
-            cursor: pointer;
-            transition: 0.2s;
-        }
-        .ai-chat-input-area button:hover { transform: scale(1.05); }
-
-        .ai-typing {
-            display: none;
-            padding: 4px 14px 12px;
-            color: #9aa8b9;
-            font-size: 13px;
-            align-items: center;
-            gap: 8px;
-        }
-        .ai-typing.active { display: flex; }
-        .ai-typing .dots span {
-            display: inline-block;
-            width: 6px;
-            height: 6px;
-            border-radius: 50%;
-            background: #a78bfa;
-            margin: 0 2px;
-            animation: dotPulse 1.4s infinite both;
-        }
-        .ai-typing .dots span:nth-child(2) { animation-delay: 0.2s; }
-        .ai-typing .dots span:nth-child(3) { animation-delay: 0.4s; }
-        @keyframes dotPulse {
-            0% { opacity: 0.2; transform: scale(0.8); }
-            50% { opacity: 1; transform: scale(1.2); }
-            100% { opacity: 0.2; transform: scale(0.8); }
-        }
-
-        @media (max-width: 640px) {
-            .ai-chat-panel {
-                width: 92%;
-                right: 4%;
-                bottom: 90px;
-                max-height: 60vh;
-            }
-            .ai-chat-toggle {
-                right: 20px;
-                bottom: 20px;
-                width: 56px;
-                height: 56px;
-                font-size: 24px;
-            }
         }
     </style>
 </head>
@@ -1440,6 +1284,11 @@
                 <div class="date-display" id="dateDisplay"><i class="fas fa-calendar-alt"></i> <span></span></div>
             </div>
             <div class="profile-wrap" style="position:relative; z-index:10000;">
+                <!-- Mic button (new) -->
+                <button class="mic-toggle-btn" id="micToggleBtn" title="Voice Assistant (Ctrl+Shift+A)">
+                    <i class="fas fa-microphone"></i>
+                    <span class="wake-indicator" id="wakeDot"></span>
+                </button>
                 <button class="settings-icon" id="settingsBtn" title="Settings"><i class="fas fa-cog"></i></button>
                 <div class="avatar-btn" id="profileBtn" title="Profile">
                     D
@@ -1635,13 +1484,15 @@
         </div>
     </div>
 
-    <!-- ===== ORIGINAL SCRIPT ===== -->
+    <!-- ================================================================ -->
+    <!-- ===== ORIGINAL SCRIPT (unchanged except exposing functions) ===== -->
+    <!-- ================================================================ -->
     <script>
         (function() {
             'use strict';
 
             // ================================================================
-            // ORIGINAL SCRIPT – preserved, sleep timer removed
+            // ORIGINAL SCRIPT – preserved, with added exports
             // ================================================================
 
             const YT_API_KEY = 'AIzaSyD_ggb1ACmlXwBiG7WvdIzqeF1pI8TXLaw';
@@ -2154,7 +2005,7 @@
             const loadingOverlay = document.getElementById('loadingOverlay');
             const errorOverlay = document.getElementById('errorOverlay');
             const toast = document.getElementById('toast');
-            const statusDiv = document.getElementById('statusBanner'); // used for banner
+            const statusDiv = document.getElementById('statusBanner');
             const searchInput = document.getElementById('searchInput');
             const searchClear = document.getElementById('searchClear');
             const searchAddBtn = document.getElementById('searchAddBtn');
@@ -2169,7 +2020,7 @@
             const movieFilters = document.getElementById('movieFilters');
             const sourceBadge = document.getElementById('currentSourceBadge');
             const liveCountHeader = document.getElementById('liveCountHeader');
-            const panelLiveCount = document.getElementById('panelLiveCount'); // removed from UI but we keep variable
+            const panelLiveCount = document.getElementById('panelLiveCount');
             const liveBanner = document.getElementById('liveBanner');
             const totalLabel = document.getElementById('totalChannelsLabel');
             const countType = document.getElementById('countType');
@@ -2194,7 +2045,6 @@
 
             const favBtn = document.getElementById('favBtn');
 
-            // Profile & Settings refs
             const profileBtn = document.getElementById('profileBtn');
             const profileDropdown = document.getElementById('profileDropdown');
             const profileOverlay = document.getElementById('profileOverlay');
@@ -2209,7 +2059,7 @@
             video.muted = savedMuted;
             updateVolumeUI();
 
-            // ===== PROFILE & SETTINGS LOGIC =====
+            // ===== PROFILE & SETTINGS LOGIC (unchanged) =====
             profileBtn.addEventListener('click', (e) => {
                 e.stopPropagation();
                 profileDropdown.classList.toggle('open');
@@ -2257,7 +2107,7 @@
                 }
             });
 
-            // ===== FAVORITE BUTTON =====
+            // ===== FAVORITE BUTTON (unchanged) =====
             function updateFavButton() {
                 if (!displayItems.length || currentIdx >= displayItems.length) {
                     favBtn.classList.remove('active');
@@ -2367,12 +2217,9 @@
                 }
             }
 
-            // Live count update – banner appears for 10 sec, but side panel no longer shows it
             function updateLiveCount(count, label = 'LIVE') {
                 const text = `${count} ${label}`;
                 if (liveCountHeader) liveCountHeader.textContent = text;
-                // No panel count anymore
-                // Banner shows for 10 sec
                 if (liveBanner) {
                     liveBanner.textContent = `🎬 ${text}`;
                     liveBanner.classList.add('show');
@@ -3115,12 +2962,10 @@
                     countType.innerText = 'Videos';
                     videoFavToggle.classList.remove('active');
                     showVideoFavoritesOnly = false;
-                    // Update source badge
                     sourceBadge.textContent = sourceName;
                     updateLiveBadge();
                     return;
                 }
-                // Update source badge
                 sourceBadge.textContent = sourceName;
                 currentCategory = "All";
                 searchQuery = "";
@@ -4483,7 +4328,6 @@
                 document.body.removeChild(dummy);
             }
 
-            // Attach share buttons after render
             function attachShareButtons() {
                 document.querySelectorAll('.channel-card:not(.share-attached)').forEach(card => {
                     const idx = parseInt(card.dataset.idx);
@@ -4606,7 +4450,6 @@
                 if (source === 'local' || source === 'global') {
                     updateCountryFilter();
                 }
-                // Update avatar initial
                 const avatarEl = document.querySelector('.avatar-btn');
                 if (avatarEl) {
                     avatarEl.textContent = 'D';
@@ -4616,6 +4459,31 @@
                         avatarEl.appendChild(dot);
                     }
                 }
+            };
+
+            // ================================================================
+            //  EXPOSE FUNCTIONS TO GLOBAL SCOPE FOR VOICE AI
+            // ================================================================
+            window.__darkranks = {
+                playChannel: playChannel,
+                playYoutubeVideo: playYoutubeVideo,
+                setSource: setSource,
+                displayItems: () => displayItems,
+                currentSource: () => currentSource,
+                LOCAL_CHANNELS: LOCAL_CHANNELS,
+                YOUTUBE_VIDEOS: YOUTUBE_VIDEOS,
+                FACEBOOK_VIDEOS: FACEBOOK_VIDEOS,
+                movieMaster: movieMaster,
+                toggleChannelFav: toggleChannelFav,
+                toggleMovieFav: toggleMovieFav,
+                toggleVideoFav: toggleVideoFav,
+                isChannelFav: isChannelFav,
+                isMovieFav: isMovieFav,
+                isVideoFav: isVideoFav,
+                showToast: showToast,
+                setStatus: setStatus,
+                searchYoutube: searchYoutube,
+                handleYoutubeSearch: handleYoutubeSearch,
             };
 
             // Initial banner
@@ -4628,693 +4496,480 @@
                 updateFavButton();
             }, 2000);
 
-            console.log('✅ DarkRanks ULTRA — updated: stacked time/date, fixed profile, panel count removed, sleep timer removed');
+            console.log('✅ DarkRanks ULTRA — core loaded');
         })();
     </script>
 
     <!-- ================================================================ -->
-    <!-- ===== NEW: DARKRANKS AI CHAT ASSISTANT (ISOLATED) ===== -->
+    <!-- ===== VOICE AI (wake word, mic button, internal control) ===== -->
     <!-- ================================================================ -->
-    <button class="ai-chat-toggle" id="aiChatToggle" title="Ask DarkRanks AI"><i class="fas fa-comment-dots"></i></button>
-    <div class="ai-chat-panel" id="aiChatPanel">
-        <div class="ai-chat-header">
-            <h3><i class="fas fa-robot"></i> DarkRanks AI</h3>
-            <button class="close-chat" id="aiChatClose"><i class="fas fa-times"></i></button>
-        </div>
-        <div class="ai-chat-messages" id="aiChatMessages">
-            <div class="ai-msg bot">
-                <div class="bubble">👋 Hi! I'm DarkRanks AI. I can answer questions, control IPTV, search YouTube, manage settings, and more. What can I do for you?</div>
-                <div class="time">Just now</div>
-            </div>
-        </div>
-        <div class="ai-typing" id="aiTyping"><span>DarkRanks is thinking</span><span class="dots"><span></span><span></span><span></span></span></div>
-        <div class="ai-chat-input-area">
-            <input type="text" id="aiChatInput" placeholder="Ask me anything or give a command..." />
-            <button id="aiChatSend"><i class="fas fa-paper-plane"></i></button>
-        </div>
-    </div>
-
     <script>
         (function() {
             'use strict';
 
-            // ================================================================
-            //  DARKRANKS AI ENGINE – completely isolated from core code
-            //  Uses Gemini API with the provided key.
-            //  Controls the UI by simulating clicks/inputs, NOT by calling
-            //  internal functions directly – so it never interferes with the
-            //  original streaming logic.
-            // ================================================================
+            // ---- DOM refs ----
+            const micBtn = document.getElementById('micToggleBtn');
+            const wakeDot = document.getElementById('wakeDot');
+            const liveBanner = document.getElementById('liveBanner');
 
-            const GEMINI_KEY = 'AQ.Ab8RN6JPPcR4GsiYZrA2jLe9TZuJt_CAqDsD2E06JaqidQiTog';
-            const GEMINI_URL = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=' +
-                GEMINI_KEY;
+            // ---- State ----
+            let isListening = false;
+            let recognition = null;
+            let wakeWord = 'hey sri';
+            let wakeDetected = false;
+            let commandBuffer = '';
+            let commandTimeout = null;
+            let isProcessing = false;
 
-            // DOM refs
-            const toggleBtn = document.getElementById('aiChatToggle');
-            const panel = document.getElementById('aiChatPanel');
-            const closeBtn = document.getElementById('aiChatClose');
-            const messages = document.getElementById('aiChatMessages');
-            const input = document.getElementById('aiChatInput');
-            const sendBtn = document.getElementById('aiChatSend');
-            const typing = document.getElementById('aiTyping');
-
-            // State
-            let isOpen = false;
-            let conversationHistory = [];
-            let currentContext = {
-                lastQuery: '',
-                lastAction: '',
-                lastResult: '',
-                favorites: [],
-                recentChannels: [],
-                watchHistory: [],
-                preferences: {}
-            };
-
-            // ---- Load context from localStorage ----
-            function loadContext() {
-                try {
-                    const saved = localStorage.getItem('darkranks_ai_context');
-                    if (saved) {
-                        const parsed = JSON.parse(saved);
-                        Object.assign(currentContext, parsed);
-                    }
-                } catch (e) {}
-                // Also pull favorites from existing storage
-                try {
-                    const favs = JSON.parse(localStorage.getItem('channel_favorites') || '[]');
-                    currentContext.favorites = favs;
-                } catch (e) {}
-                try {
-                    const hist = JSON.parse(localStorage.getItem('recently_watched_channels') || '[]');
-                    currentContext.recentChannels = hist;
-                } catch (e) {}
-                try {
-                    const watch = JSON.parse(localStorage.getItem('youtube_watch_history') || '[]');
-                    currentContext.watchHistory = watch;
-                } catch (e) {}
+            // ---- UI helpers ----
+            function setBanner(text, isError = false) {
+                if (liveBanner) {
+                    liveBanner.textContent = text;
+                    liveBanner.style.background = isError ? '#dc2626cc' : 'rgba(0,0,0,0.7)';
+                    liveBanner.classList.add('show');
+                    clearTimeout(liveBanner._timeout);
+                    liveBanner._timeout = setTimeout(() => {
+                        liveBanner.classList.remove('show');
+                    }, 5000);
+                }
             }
 
-            function saveContext() {
-                try {
-                    localStorage.setItem('darkranks_ai_context', JSON.stringify(currentContext));
-                } catch (e) {}
-            }
-
-            loadContext();
-
-            // ---- UI helpers for the chat ----
-            function addMessage(role, text) {
-                const wrapper = document.createElement('div');
-                wrapper.className = `ai-msg ${role === 'user' ? 'user' : 'bot'}`;
-                const bubble = document.createElement('div');
-                bubble.className = 'bubble';
-                bubble.textContent = text;
-                const time = document.createElement('div');
-                time.className = 'time';
-                time.textContent = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-                wrapper.appendChild(bubble);
-                wrapper.appendChild(time);
-                messages.appendChild(wrapper);
-                messages.scrollTop = messages.scrollHeight;
-                if (role === 'user') {
-                    conversationHistory.push({ role: 'user', content: text });
+            function updateMicUI(listening) {
+                micBtn.classList.toggle('listening', listening);
+                if (listening) {
+                    micBtn.innerHTML = `<i class="fas fa-microphone"></i><span class="wake-indicator" style="background:#fa4b6e;"></span>`;
+                    setBanner('🎤 Listening for wake word...');
                 } else {
-                    conversationHistory.push({ role: 'model', content: text });
+                    micBtn.innerHTML = `<i class="fas fa-microphone"></i><span class="wake-indicator"></span>`;
+                    setBanner('Voice assistant paused');
                 }
             }
 
-            function showTyping() {
-                typing.classList.add('active');
-                messages.scrollTop = messages.scrollHeight;
+            // ---- Speak feedback ----
+            function speak(text) {
+                if (!window.speechSynthesis) return;
+                window.speechSynthesis.cancel();
+                const utterance = new SpeechSynthesisUtterance(text);
+                utterance.rate = 0.9;
+                utterance.pitch = 1.0;
+                utterance.volume = 0.9;
+                utterance.lang = 'en-US';
+                window.speechSynthesis.speak(utterance);
             }
 
-            function hideTyping() {
-                typing.classList.remove('active');
-            }
+            // ---- Command execution using exposed functions ----
+            function executeCommand(commandText) {
+                const lower = commandText.toLowerCase().trim();
 
-            function clearMessages() {
-                messages.innerHTML = '';
-                conversationHistory = [];
-                // Add greeting
-                const greeting =
-                    '👋 Hi! I\'m DarkRanks AI. I can answer questions, control IPTV, search YouTube, manage settings, and more. What can I do for you?';
-                const wrapper = document.createElement('div');
-                wrapper.className = 'ai-msg bot';
-                const bubble = document.createElement('div');
-                bubble.className = 'bubble';
-                bubble.textContent = greeting;
-                const time = document.createElement('div');
-                time.className = 'time';
-                time.textContent = 'Just now';
-                wrapper.appendChild(bubble);
-                wrapper.appendChild(time);
-                messages.appendChild(wrapper);
-                conversationHistory.push({ role: 'model', content: greeting });
-            }
-
-            // ---- Intent parser (natural language → actions) ----
-            function parseCommand(text) {
-                const lower = text.toLowerCase().trim();
-
-                // 1. Greeting / simple hello
-                if (/^(hi|hello|hey|howdy|yo|sup|what's up|hola|hey there)/i.test(lower) && lower.length < 20) {
-                    return { action: 'greeting', confidence: 0.98 };
-                }
-
-                // 2. Open settings / profile
-                if (/\b(settings|preferences|profile|account)\b/.test(lower)) {
-                    return { action: 'open', target: lower.includes('settings') ? 'settings' : 'profile',
-                    confidence: 0.95 };
-                }
-
-                // 3. Dark mode / light mode
-                if (/\b(dark mode|night mode|light mode|theme)\b/.test(lower)) {
-                    const mode = /dark|night/.test(lower) ? 'dark' : 'light';
-                    return { action: 'theme', mode, confidence: 0.93 };
-                }
-
-                // 4. Scroll
-                if (/\b(scroll|move|shift)\s+(down|up)\b/.test(lower)) {
-                    const dir = /down/.test(lower) ? 'down' : 'up';
-                    return { action: 'scroll', direction: dir, confidence: 0.94 };
-                }
-
-                // 5. Go home / back / forward
-                if (/\b(go home|home page|take me home|navigate home|scroll to top)\b/.test(lower)) {
-                    return { action: 'navigate', target: 'home', confidence: 0.95 };
-                }
-                if (/\b(go back|back page|navigate back)\b/.test(lower)) {
-                    return { action: 'navigate', target: 'back', confidence: 0.93 };
-                }
-                if (/\b(go forward|forward page|navigate forward)\b/.test(lower)) {
-                    return { action: 'navigate', target: 'forward', confidence: 0.93 };
-                }
-
-                // 6. Open a known app/website
-                const apps = ['youtube', 'google', 'facebook', 'github', 'gmail', 'twitter', 'instagram', 'linkedin',
-                    'reddit', 'amazon', 'netflix', 'spotify'
-                ];
-                for (let app of apps) {
-                    if (new RegExp(`\\b(open|go to|launch|start)\\s+${app}\\b`).test(lower)) {
-                        return { action: 'open', target: app, confidence: 0.97 };
+                // ---- Helper to find channel by name ----
+                function findChannel(name) {
+                    const items = window.__darkranks.displayItems() || [];
+                    for (let item of items) {
+                        if (item.name.toLowerCase().includes(name)) return item;
                     }
-                }
-
-                // 7. Play music/video (with optional platform)
-                const playMatch = lower.match(/\b(play|start|listen to)\s+(.+?)(?:\s+on\s+(\w+))?$/);
-                if (playMatch) {
-                    let query = playMatch[1].trim();
-                    let platform = playMatch[2] || null;
-                    if (!query || query.length < 2) query = 'music';
-                    return { action: 'play', query, target: platform || 'default', confidence: 0.95 };
-                }
-
-                // 8. Search / question
-                if (/\b(search|find|look up|show me|tell me|what|who|where|when|why|how|explain|define)\b/.test(lower)) {
-                    const query = text; // take the whole text as query
-                    return { action: 'search', query, confidence: 0.9 };
-                }
-
-                // 9. IPTV channel control
-                const channelMatch = lower.match(
-                    /\b(play|open|watch|show|tune to)\s+(.+?)(?:\s+(?:channel|tv|station))?$/);
-                if (channelMatch) {
-                    const channelName = channelMatch[1].trim();
-                    if (channelName.length > 1) {
-                        return { action: 'iptv', command: 'play', channel: channelName, confidence: 0.88 };
-                    }
-                }
-
-                // 10. YouTube specific
-                if (/\b(search youtube|youtube search)\s+(.+)/i.test(lower)) {
-                    const query = lower.replace(/\b(search youtube|youtube search)\b/i, '').trim();
-                    return { action: 'youtube', command: 'search', query, confidence: 0.92 };
-                }
-
-                // 11. Add to favorites (IPTV)
-                if (/\b(add (this|the) channel to favorites|favorite this channel|star this channel)\b/.test(lower)) {
-                    return { action: 'iptv', command: 'add_favorite', confidence: 0.85 };
-                }
-
-                // 12. Continue watching (last movie)
-                if (/\b(continue watching|resume|pick up where I left off)\b/.test(lower)) {
-                    return { action: 'continue_watching', confidence: 0.88 };
-                }
-
-                // 13. Show recommendations
-                if (/\b(recommend|suggest|show me something|what should I watch)\b/.test(lower)) {
-                    return { action: 'recommend', confidence: 0.86 };
-                }
-
-                // 14. Fallback: treat as search/question
-                if (lower.length > 3) {
-                    return { action: 'search', query: text, confidence: 0.6 };
-                }
-
-                return { action: 'unknown', confidence: 0.2, input: text };
-            }
-
-            // ---- Execute actions on the UI (simulate user interaction) ----
-            function executeAction(command) {
-                return new Promise((resolve) => {
-                    const action = command.action;
-                    let result = '';
-
-                    switch (action) {
-                        case 'greeting': {
-                            const greetings = [
-                                'Hey there! How can I help you today?',
-                                'Hello! I\'m all ears – what do you need?',
-                                'Hi! Ready to take your command.',
-                                'Good to see you! What\'s on your mind?'
-                            ];
-                            result = greetings[Math.floor(Math.random() * greetings.length)];
-                            resolve(result);
-                            break;
-                        }
-
-                        case 'open': {
-                            const target = command.target;
-                            if (target === 'settings') {
-                                const btn = document.getElementById('settingsBtn');
-                                if (btn) btn.click();
-                                result = 'Opening settings.';
-                            } else if (target === 'profile') {
-                                const btn = document.getElementById('profileBtn');
-                                if (btn) btn.click();
-                                result = 'Opening profile.';
-                            } else {
-                                // Open a website
-                                const urls = {
-                                    youtube: 'https://youtube.com',
-                                    google: 'https://google.com',
-                                    facebook: 'https://facebook.com',
-                                    github: 'https://github.com',
-                                    gmail: 'https://gmail.com',
-                                    twitter: 'https://twitter.com',
-                                    instagram: 'https://instagram.com',
-                                    linkedin: 'https://linkedin.com',
-                                    reddit: 'https://reddit.com',
-                                    amazon: 'https://amazon.com',
-                                    netflix: 'https://netflix.com',
-                                    spotify: 'https://spotify.com',
-                                };
-                                const url = urls[target] || `https://${target}.com`;
-                                window.open(url, '_blank');
-                                result = `Opening ${target}.`;
-                            }
-                            resolve(result);
-                            break;
-                        }
-
-                        case 'theme': {
-                            const mode = command.mode || 'dark';
-                            // Try to toggle via settings overlay (if dark mode option exists)
-                            const overlay = document.getElementById('settingsOverlay');
-                            if (overlay && !overlay.classList.contains('open')) {
-                                const settingsBtn = document.getElementById('settingsBtn');
-                                if (settingsBtn) settingsBtn.click();
-                                // Wait a bit then try to find dark mode toggle (simulate)
-                                setTimeout(() => {
-                                    const cards = document.querySelectorAll('.setting-card .title');
-                                    for (let card of cards) {
-                                        if (card.textContent.toLowerCase().includes('appearance')) {
-                                            card.closest('.setting-card')?.click();
-                                            break;
-                                        }
-                                    }
-                                }, 500);
-                            }
-                            // Also toggle a class on body for immediate feedback
-                            document.body.style.background = mode === 'dark' ? '#0b0e1a' : '#f0f0f0';
-                            result = `Switched to ${mode} mode.`;
-                            resolve(result);
-                            break;
-                        }
-
-                        case 'scroll': {
-                            const dir = command.direction || 'down';
-                            const amount = dir === 'down' ? 500 : -500;
-                            window.scrollBy({ top: amount, behavior: 'smooth' });
-                            result = `Scrolling ${dir}.`;
-                            resolve(result);
-                            break;
-                        }
-
-                        case 'navigate': {
-                            const target = command.target || 'home';
-                            if (target === 'home') window.scrollTo({ top: 0, behavior: 'smooth' });
-                            else if (target === 'back') history.back();
-                            else if (target === 'forward') history.forward();
-                            result = `Navigating to ${target}.`;
-                            resolve(result);
-                            break;
-                        }
-
-                        case 'play': {
-                            const query = command.query || 'music';
-                            const target = command.target || '';
-                            let url;
-                            if (target && target.toLowerCase() === 'youtube') {
-                                url = `https://www.youtube.com/results?search_query=${encodeURIComponent(query)}`;
-                            } else if (target && target.toLowerCase() === 'spotify') {
-                                url = `https://open.spotify.com/search/${encodeURIComponent(query)}`;
-                            } else {
-                                url = `https://www.google.com/search?q=${encodeURIComponent(query)}+music`;
-                            }
-                            window.open(url, '_blank');
-                            result = `Playing ${query}${target ? ' on ' + target : ''}.`;
-                            resolve(result);
-                            break;
-                        }
-
-                        case 'iptv': {
-                            const cmd = command.command;
-                            const channel = command.channel || '';
-                            if (cmd === 'play' && channel) {
-                                // Open channel panel if not open
-                                const panel = document.getElementById('channelPanel');
-                                if (panel && !panel.classList.contains('show')) {
-                                    const toggle = document.getElementById('channelToggle');
-                                    if (toggle) toggle.click();
-                                }
-                                // Wait a bit for panel to open, then search
-                                setTimeout(() => {
-                                    const searchInput = document.getElementById('searchInput');
-                                    if (searchInput) {
-                                        searchInput.value = channel;
-                                        searchInput.dispatchEvent(new Event('input', { bubbles: true }));
-                                        // Wait for search results, then click the first channel
-                                        setTimeout(() => {
-                                            const cards = document.querySelectorAll(
-                                                '.channel-card .channel-name');
-                                            for (let card of cards) {
-                                                if (card.textContent.toLowerCase().includes(channel
-                                                    .toLowerCase())) {
-                                                    card.closest('.channel-card')?.click();
-                                                    break;
-                                                }
-                                            }
-                                        }, 800);
-                                    }
-                                }, 500);
-                                result = `Searching and playing "${channel}".`;
-                            } else if (cmd === 'add_favorite') {
-                                // Add currently playing channel to favorites
-                                const favBtn = document.getElementById('favBtn');
-                                if (favBtn) favBtn.click();
-                                result = 'Added to favorites.';
-                            } else {
-                                result = 'IPTV command not recognized.';
-                            }
-                            resolve(result);
-                            break;
-                        }
-
-                        case 'youtube': {
-                            const cmd = command.command;
-                            const query = command.query || '';
-                            if (cmd === 'search' && query) {
-                                // Switch to YT HUB source
-                                const ytBtn = document.querySelector('.source-btn[data-source="youtube"]');
-                                if (ytBtn) ytBtn.click();
-                                setTimeout(() => {
-                                    const searchInput = document.getElementById('searchInput');
-                                    if (searchInput) {
-                                        searchInput.value = query;
-                                        searchInput.dispatchEvent(new Event('input', { bubbles: true }));
-                                        // Press Enter to trigger search
-                                        const enterEvent = new KeyboardEvent('keydown', {
-                                            key: 'Enter',
-                                            bubbles: true
-                                        });
-                                        searchInput.dispatchEvent(enterEvent);
-                                    }
-                                }, 600);
-                                result = `Searching YouTube for "${query}".`;
-                            } else {
-                                result = 'YouTube command not recognized.';
-                            }
-                            resolve(result);
-                            break;
-                        }
-
-                        case 'continue_watching': {
-                            // Resume last movie - try to find continue watching row
-                            const continueRow = document.querySelector('.continue-watching .movie-card');
-                            if (continueRow) {
-                                continueRow.click();
-                                result = 'Resuming your last movie.';
-                            } else {
-                                // Fallback: play last channel from recent list
-                                const recent = currentContext.recentChannels;
-                                if (recent.length > 0) {
-                                    // Open channel panel and click first recent
-                                    const panel = document.getElementById('channelPanel');
-                                    if (panel && !panel.classList.contains('show')) {
-                                        const toggle = document.getElementById('channelToggle');
-                                        if (toggle) toggle.click();
-                                    }
-                                    setTimeout(() => {
-                                        const cards = document.querySelectorAll(
-                                            '.channel-card .channel-name');
-                                        for (let card of cards) {
-                                            if (card.textContent.toLowerCase().includes(recent[0].name
-                                                    .toLowerCase())) {
-                                                card.closest('.channel-card')?.click();
-                                                break;
-                                            }
-                                        }
-                                    }, 500);
-                                    result = `Continuing with "${recent[0].name}".`;
-                                } else {
-                                    result = 'No continue watching items found.';
-                                }
-                            }
-                            resolve(result);
-                            break;
-                        }
-
-                        case 'recommend': {
-                            // Simple recommendation based on favorites/recent
-                            const favs = currentContext.favorites;
-                            const recent = currentContext.recentChannels;
-                            let rec = '';
-                            if (favs.length > 0) {
-                                rec = `Based on your favorites, try "${favs[Math.floor(Math.random() * favs.length)]}".`;
-                            } else if (recent.length > 0) {
-                                rec =
-                                `Since you watched "${recent[0].name}" recently, you might also enjoy similar channels.`;
-                            } else {
-                                rec = 'Try exploring the "Sports" or "News" categories in the channel guide.';
-                            }
-                            result = rec;
-                            resolve(result);
-                            break;
-                        }
-
-                        case 'search': {
-                            // General question → answer via Gemini
-                            const query = command.query || '';
-                            if (query) {
-                                // We'll call Gemini in the main loop
-                                result = null; // signal that we need to call AI
-                                resolve(result);
-                            } else {
-                                result = 'Please ask a specific question.';
-                                resolve(result);
-                            }
-                            break;
-                        }
-
-                        default: {
-                            // Unknown action – ask Gemini anyway
-                            result = null;
-                            resolve(result);
-                        }
-                    }
-                });
-            }
-
-            // ---- Call Gemini API ----
-            async function callGemini(prompt, history = []) {
-                try {
-                    const context = history.slice(-5).map(m => ({
-                        role: m.role === 'user' ? 'user' : 'model',
-                        parts: [{ text: m.content }]
-                    }));
-
-                    const systemInstruction =
-                        `You are DarkRanks AI, an advanced assistant integrated into a streaming platform. You can answer questions, control IPTV, search YouTube, manage settings, and more. Be helpful, concise, and friendly. If the user asks for a command, interpret it and respond with a clear action. If they ask a general question, provide a thorough but concise answer.`;
-
-                    const payload = {
-                        system_instruction: { parts: [{ text: systemInstruction }] },
-                        contents: [
-                            ...context,
-                            { role: 'user', parts: [{ text: prompt }] }
-                        ],
-                        generationConfig: {
-                            temperature: 0.7,
-                            maxOutputTokens: 500,
-                        }
-                    };
-
-                    const response = await fetch(GEMINI_URL, {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify(payload)
-                    });
-
-                    if (!response.ok) {
-                        const err = await response.text();
-                        throw new Error(`Gemini API error: ${response.status} - ${err}`);
-                    }
-
-                    const data = await response.json();
-                    if (data.candidates && data.candidates.length > 0) {
-                        const text = data.candidates[0].content.parts[0].text;
-                        return text.trim();
-                    } else {
-                        throw new Error('No response from Gemini');
-                    }
-                } catch (e) {
-                    console.error('Gemini error:', e);
                     return null;
                 }
-            }
 
-            // ---- Main chat message handler ----
-            async function handleUserMessage(text) {
-                if (!text || text.trim().length === 0) return;
+                // ---- Helper to find movie by name ----
+                function findMovie(name) {
+                    const movies = window.__darkranks.movieMaster || [];
+                    for (let m of movies) {
+                        if (m.name.toLowerCase().includes(name)) return m;
+                    }
+                    return null;
+                }
 
-                // Add user message
-                addMessage('user', text);
-                input.value = '';
-                showTyping();
+                // ---- Helper to find YouTube video by title ----
+                function findYoutubeVideo(title) {
+                    const vids = window.__darkranks.YOUTUBE_VIDEOS || [];
+                    for (let v of vids) {
+                        if (v.title.toLowerCase().includes(title)) return v;
+                    }
+                    return null;
+                }
 
-                // Parse intent
-                const command = parseCommand(text);
-                console.log('[AI] Parsed command:', command);
+                // ---- 1. Open source ----
+                if (/(open|switch to|go to)\s+(tv|local|global|movies|youtube|yt hub)/i.test(lower)) {
+                    const target = lower.match(/(tv|local|global|movies|youtube|yt hub)/i)[0].toLowerCase();
+                    if (target === 'tv' || target === 'local') {
+                        window.__darkranks.setSource('local');
+                        const msg = 'Switched to local TV.';
+                        speak(msg);
+                        setBanner('✅ ' + msg);
+                        return true;
+                    } else if (target === 'global') {
+                        window.__darkranks.setSource('global');
+                        const msg = 'Switched to global IPTV.';
+                        speak(msg);
+                        setBanner('✅ ' + msg);
+                        return true;
+                    } else if (target === 'movies') {
+                        window.__darkranks.setSource('movies');
+                        const msg = 'Switched to movies.';
+                        speak(msg);
+                        setBanner('✅ ' + msg);
+                        return true;
+                    } else if (target === 'youtube' || target === 'yt hub') {
+                        window.__darkranks.setSource('youtube');
+                        const msg = 'Switched to YouTube HUB.';
+                        speak(msg);
+                        setBanner('✅ ' + msg);
+                        return true;
+                    }
+                }
 
-                let response = null;
-
-                // If it's a search/question, ask Gemini
-                if (command.action === 'search' || command.action === 'unknown' || command.action === 'recommend' ||
-                    command.action === 'continue_watching') {
-                    // For questions, we use Gemini directly
-                    const geminiResponse = await callGemini(text, conversationHistory);
-                    if (geminiResponse) {
-                        response = geminiResponse;
-                    } else {
-                        // Fallback: try to execute as command if Gemini fails
-                        const execResult = await executeAction(command);
-                        if (execResult !== null) {
-                            response = execResult;
-                        } else {
-                            response = "I'm not sure how to answer that. Could you rephrase?";
+                // ---- 2. Play channel ----
+                const playChannelMatch = lower.match(/play\s+(.+)/);
+                if (playChannelMatch) {
+                    const name = playChannelMatch[1].trim();
+                    const channel = findChannel(name);
+                    if (channel) {
+                        // Get the index of this channel in displayItems
+                        const items = window.__darkranks.displayItems();
+                        const idx = items.indexOf(channel);
+                        if (idx !== -1) {
+                            window.__darkranks.playChannel(idx);
+                            const msg = `Playing ${channel.name}.`;
+                            speak(msg);
+                            setBanner('▶️ ' + msg);
+                            return true;
                         }
                     }
+                    // If not found in current source, maybe it's a movie?
+                    const movie = findMovie(name);
+                    if (movie) {
+                        // We need to switch to movies source first
+                        window.__darkranks.setSource('movies');
+                        setTimeout(() => {
+                            const items = window.__darkranks.displayItems();
+                            const idx = items.indexOf(movie);
+                            if (idx !== -1) {
+                                window.__darkranks.playChannel(idx);
+                                const msg = `Playing ${movie.name}.`;
+                                speak(msg);
+                                setBanner('▶️ ' + msg);
+                            }
+                        }, 500);
+                        return true;
+                    }
+                    // Maybe it's a YouTube video?
+                    const ytVideo = findYoutubeVideo(name);
+                    if (ytVideo) {
+                        window.__darkranks.setSource('youtube');
+                        setTimeout(() => {
+                            window.__darkranks.playYoutubeVideo(ytVideo);
+                            const msg = `Playing ${ytVideo.title}.`;
+                            speak(msg);
+                            setBanner('▶️ ' + msg);
+                        }, 500);
+                        return true;
+                    }
+                    // If not found, try YouTube search
+                    if (name.length > 2) {
+                        window.__darkranks.setSource('youtube');
+                        setTimeout(() => {
+                            window.__darkranks.handleYoutubeSearch(name);
+                            const msg = `Searching YouTube for "${name}".`;
+                            speak(msg);
+                            setBanner('🔍 ' + msg);
+                        }, 500);
+                        return true;
+                    }
+                    speak(`I couldn't find "${name}".`);
+                    setBanner('❌ Not found', true);
+                    return true;
+                }
+
+                // ---- 3. YouTube search ----
+                const ytSearch = lower.match(/(search youtube|youtube search)\s+(.+)/);
+                if (ytSearch) {
+                    const query = ytSearch[2].trim();
+                    window.__darkranks.setSource('youtube');
+                    setTimeout(() => {
+                        window.__darkranks.handleYoutubeSearch(query);
+                        const msg = `Searching YouTube for "${query}".`;
+                        speak(msg);
+                        setBanner('🔍 ' + msg);
+                    }, 500);
+                    return true;
+                }
+
+                // ---- 4. Add to favorites ----
+                if (/\b(add to favorites|favorite|star this)\b/.test(lower)) {
+                    const favBtn = document.getElementById('favBtn');
+                    if (favBtn) {
+                        favBtn.click();
+                        const msg = 'Added to favorites.';
+                        speak(msg);
+                        setBanner('❤️ ' + msg);
+                    } else {
+                        speak('Could not find favorite button.');
+                        setBanner('❌ Error', true);
+                    }
+                    return true;
+                }
+
+                // ---- 5. Continue watching ----
+                if (/\b(continue watching|resume|continue)\b/.test(lower)) {
+                    const continueRow = document.querySelector('.continue-watching .movie-card');
+                    if (continueRow) {
+                        continueRow.click();
+                        const msg = 'Resuming your movie.';
+                        speak(msg);
+                        setBanner('▶️ ' + msg);
+                    } else {
+                        // Try to play last watched channel from recent
+                        const recent = JSON.parse(localStorage.getItem('recently_watched_channels') || '[]');
+                        if (recent.length > 0) {
+                            const ch = recent[0];
+                            window.__darkranks.setSource('local');
+                            setTimeout(() => {
+                                const items = window.__darkranks.displayItems();
+                                const idx = items.findIndex(item => item.url === ch.url);
+                                if (idx !== -1) {
+                                    window.__darkranks.playChannel(idx);
+                                    const msg = `Continuing with ${ch.name}.`;
+                                    speak(msg);
+                                    setBanner('▶️ ' + msg);
+                                }
+                            }, 500);
+                        } else {
+                            speak('Nothing to resume.');
+                            setBanner('⏸️ No content', true);
+                        }
+                    }
+                    return true;
+                }
+
+                // ---- 6. Scroll ----
+                if (/\b(scroll|move)\s+(up|down)\b/.test(lower)) {
+                    const dir = /down/.test(lower) ? 'down' : 'up';
+                    const amount = dir === 'down' ? 500 : -500;
+                    window.scrollBy({ top: amount, behavior: 'smooth' });
+                    const msg = `Scrolling ${dir}.`;
+                    speak(msg);
+                    setBanner('⬇️ ' + msg);
+                    return true;
+                }
+
+                // ---- 7. Go home ----
+                if (/\b(go home|home page|take me home|scroll to top)\b/.test(lower)) {
+                    window.scrollTo({ top: 0, behavior: 'smooth' });
+                    const msg = 'Going home.';
+                    speak(msg);
+                    setBanner('🏠 ' + msg);
+                    return true;
+                }
+
+                // ---- 8. Open settings / profile ----
+                if (/\b(settings|preferences)\b/.test(lower)) {
+                    document.getElementById('settingsBtn').click();
+                    const msg = 'Opening settings.';
+                    speak(msg);
+                    setBanner('⚙️ ' + msg);
+                    return true;
+                }
+                if (/\b(profile|account)\b/.test(lower)) {
+                    document.getElementById('profileBtn').click();
+                    const msg = 'Opening profile.';
+                    speak(msg);
+                    setBanner('👤 ' + msg);
+                    return true;
+                }
+
+                // ---- 9. Theme ----
+                if (/\b(dark mode|night mode|light mode)\b/.test(lower)) {
+                    const mode = /dark|night/.test(lower) ? 'dark' : 'light';
+                    document.body.style.background = mode === 'dark' ? '#0b0e1a' : '#f0f0f0';
+                    const msg = `Switched to ${mode} mode.`;
+                    speak(msg);
+                    setBanner('🎨 ' + msg);
+                    return true;
+                }
+
+                // ---- 10. Volume ----
+                const volMatch = lower.match(/volume\s+(up|down|mute|unmute|(\d+))/);
+                if (volMatch) {
+                    const videoEl = document.getElementById('video');
+                    if (videoEl) {
+                        const cmd = volMatch[1] || volMatch[2];
+                        if (cmd === 'up') videoEl.volume = Math.min(videoEl.volume + 0.1, 1);
+                        else if (cmd === 'down') videoEl.volume = Math.max(videoEl.volume - 0.1, 0);
+                        else if (cmd === 'mute') videoEl.muted = true;
+                        else if (cmd === 'unmute') videoEl.muted = false;
+                        else if (!isNaN(cmd)) videoEl.volume = Math.min(Math.max(cmd / 100, 0), 1);
+                        const msg = `Volume changed.`;
+                        speak(msg);
+                        setBanner('🔊 ' + msg);
+                    } else {
+                        speak('No video player found.');
+                    }
+                    return true;
+                }
+
+                // ---- 11. Time ----
+                if (/\b(time|clock|what'?s the time)\b/.test(lower)) {
+                    const now = new Date();
+                    const t = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+                    const msg = `The time is ${t}.`;
+                    speak(msg);
+                    setBanner('🕐 ' + msg);
+                    return true;
+                }
+
+                // ---- 12. General question → ask Gemini (optional) ----
+                // We could integrate Gemini API, but for now, we'll fallback to a generic response
+                // For advanced Q&A, you can add the Gemini call from the previous version.
+                // For simplicity, we'll just acknowledge.
+                speak('I understood your request, but I need more specific instructions.');
+                setBanner('🤖 Please give a specific command.');
+                return true;
+            }
+
+            // ---- Speech recognition ----
+            function initSpeech() {
+                const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+                if (!SR) {
+                    alert('Speech recognition not supported in this browser.');
+                    return null;
+                }
+
+                const rec = new SR();
+                rec.lang = 'en-US';
+                rec.continuous = true;
+                rec.interimResults = true;
+                rec.maxAlternatives = 1;
+
+                rec.onstart = function() {
+                    isListening = true;
+                    updateMicUI(true);
+                    setBanner('🎤 Listening for wake word...');
+                };
+
+                rec.onerror = function(event) {
+                    console.warn('Speech error:', event.error);
+                    if (event.error === 'not-allowed') {
+                        setBanner('❌ Microphone access denied', true);
+                        speak('Please allow microphone access.');
+                        updateMicUI(false);
+                        isListening = false;
+                    } else if (event.error === 'no-speech') {
+                        setBanner('No speech detected', true);
+                    }
+                };
+
+                rec.onend = function() {
+                    if (isListening) {
+                        // Restart automatically
+                        try { rec.start(); } catch (_) {}
+                    }
+                };
+
+                rec.onresult = function(event) {
+                    let finalText = '';
+                    let interimText = '';
+                    for (let i = event.resultIndex; i < event.results.length; i++) {
+                        const res = event.results[i];
+                        const transcript = res[0].transcript.trim();
+                        if (res.isFinal) finalText = transcript;
+                        else interimText = transcript;
+                    }
+
+                    const text = finalText || interimText;
+                    if (!text) return;
+
+                    const lower = text.toLowerCase();
+
+                    // Check for wake word
+                    if (lower.includes(wakeWord)) {
+                        wakeDetected = true;
+                        commandBuffer = '';
+                        setBanner('🔊 Wake word detected! Listening for command...');
+                        speak('Yes?');
+                        // Clear any previous timeout
+                        if (commandTimeout) clearTimeout(commandTimeout);
+                        return;
+                    }
+
+                    // If wake detected, accumulate command
+                    if (wakeDetected) {
+                        commandBuffer += ' ' + text;
+                        // Reset timeout
+                        if (commandTimeout) clearTimeout(commandTimeout);
+                        commandTimeout = setTimeout(() => {
+                            // Process the command
+                            if (commandBuffer.trim().length > 0) {
+                                const cmd = commandBuffer.trim();
+                                setBanner('⏳ Processing command...');
+                                executeCommand(cmd);
+                                wakeDetected = false;
+                                commandBuffer = '';
+                                setBanner('✅ Command executed');
+                            } else {
+                                wakeDetected = false;
+                                setBanner('No command heard');
+                            }
+                            commandTimeout = null;
+                        }, 2000); // Wait 2 seconds of silence before processing
+                    }
+                };
+
+                return rec;
+            }
+
+            // ---- Toggle mic ----
+            function toggleMic() {
+                if (isListening) {
+                    // Stop
+                    if (recognition) {
+                        try { recognition.stop(); } catch (_) {}
+                    }
+                    isListening = false;
+                    updateMicUI(false);
+                    setBanner('Voice assistant paused');
                 } else {
-                    // It's a direct command (open, play, iptv, etc.)
-                    const execResult = await executeAction(command);
-                    if (execResult !== null) {
-                        response = execResult;
-                    } else {
-                        // If executeAction returns null, fallback to Gemini
-                        const geminiResponse = await callGemini(text, conversationHistory);
-                        if (geminiResponse) {
-                            response = geminiResponse;
+                    if (!recognition) {
+                        recognition = initSpeech();
+                        if (!recognition) return;
+                    }
+                    try {
+                        recognition.start();
+                    } catch (e) {
+                        console.warn(e);
+                        if (e.message.includes('already started')) {
+                            try { recognition.abort(); } catch (_) {}
+                            setTimeout(() => { try { recognition.start(); } catch (_) {} }, 300);
                         } else {
-                            response = "I couldn't process that command. Please try again.";
+                            alert('Could not start microphone. Please try again.');
                         }
                     }
                 }
-
-                // If still no response, default
-                if (!response) {
-                    response = "I'm sorry, I couldn't understand that. Could you rephrase?";
-                }
-
-                // Add AI response
-                hideTyping();
-                addMessage('bot', response);
-                // Speak it
-                if (window.speechSynthesis) {
-                    const utterance = new SpeechSynthesisUtterance(response);
-                    utterance.rate = 0.9;
-                    utterance.pitch = 1.0;
-                    utterance.volume = 0.9;
-                    window.speechSynthesis.speak(utterance);
-                }
-
-                // Save context
-                currentContext.lastQuery = text;
-                saveContext();
             }
 
-            // ---- Event listeners ----
-            toggleBtn.addEventListener('click', () => {
-                isOpen = !isOpen;
-                panel.classList.toggle('open', isOpen);
-                if (isOpen) {
-                    input.focus();
-                }
-            });
+            // ---- Events ----
+            micBtn.addEventListener('click', toggleMic);
 
-            closeBtn.addEventListener('click', () => {
-                isOpen = false;
-                panel.classList.remove('open');
-            });
-
-            sendBtn.addEventListener('click', () => {
-                const text = input.value.trim();
-                if (text) {
-                    handleUserMessage(text);
-                }
-            });
-
-            input.addEventListener('keydown', (e) => {
-                if (e.key === 'Enter') {
-                    e.preventDefault();
-                    const text = input.value.trim();
-                    if (text) {
-                        handleUserMessage(text);
-                    }
-                }
-            });
-
-            // ---- Keyboard shortcut: Ctrl+Shift+A to toggle chat ----
+            // Keyboard shortcut: Ctrl+Shift+A to toggle
             document.addEventListener('keydown', (e) => {
                 if (e.ctrlKey && e.shiftKey && (e.key === 'a' || e.key === 'A')) {
                     e.preventDefault();
-                    toggleBtn.click();
+                    toggleMic();
                 }
             });
 
-            // ---- Add clear history function (hidden) ----
-            // Double-click the chat header to reset
-            const header = document.querySelector('.ai-chat-header');
-            if (header) {
-                header.addEventListener('dblclick', () => {
-                    clearMessages();
-                    saveContext();
-                    showToast('🧹 Chat history cleared.');
-                });
-            }
-
-            // ---- Toast for chat actions ----
-            function showToast(msg) {
-                const toast = document.getElementById('toast');
-                if (toast) {
-                    toast.innerText = msg;
-                    toast.classList.add('show');
-                    setTimeout(() => toast.classList.remove('show'), 2000);
+            // ---- Set wake word from console ----
+            window.setWakeWord = function(word) {
+                if (word && typeof word === 'string' && word.trim().length > 0) {
+                    wakeWord = word.trim().toLowerCase();
+                    speak(`Wake word set to "${wakeWord}".`);
+                    setBanner(`🔊 Wake word: "${wakeWord}"`);
                 }
-            }
+            };
 
-            console.log('[DarkRanks AI] Assistant ready. Toggle with 💬 button or Ctrl+Shift+A.');
+            // Start listening by default? We'll let user click mic.
+            // But we can auto-start if desired. For now, user must click.
+
+            console.log('[Voice AI] Ready. Click the mic or press Ctrl+Shift+A. Wake word: "hey sri"');
         })();
     </script>
 
