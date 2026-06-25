@@ -269,7 +269,7 @@
             border: 2px solid #0a0a14;
         }
 
-        /* Mic button (added beside settings) */
+        /* Mic button (beside settings) */
         .mic-toggle-btn {
             width: 36px;
             height: 36px;
@@ -1285,7 +1285,7 @@
             </div>
             <div class="profile-wrap" style="position:relative; z-index:10000;">
                 <!-- Mic button (new) -->
-                <button class="mic-toggle-btn" id="micToggleBtn" title="Voice Assistant (Ctrl+Shift+A)">
+                <button class="mic-toggle-btn" id="micToggleBtn" title="Voice Assistant (click, speak, done)">
                     <i class="fas fa-microphone"></i>
                     <span class="wake-indicator" id="wakeDot"></span>
                 </button>
@@ -1485,7 +1485,7 @@
     </div>
 
     <!-- ================================================================ -->
-    <!-- ===== ORIGINAL SCRIPT (unchanged except exposing functions) ===== -->
+    <!-- ===== ORIGINAL SCRIPT (unchanged) ===== -->
     <!-- ================================================================ -->
     <script>
         (function() {
@@ -4501,7 +4501,7 @@
     </script>
 
     <!-- ================================================================ -->
-    <!-- ===== VOICE AI (wake word, mic button, internal control) ===== -->
+    <!-- ===== VOICE AI (Reliable Push-to-Talk) ===== -->
     <!-- ================================================================ -->
     <script>
         (function() {
@@ -4509,16 +4509,11 @@
 
             // ---- DOM refs ----
             const micBtn = document.getElementById('micToggleBtn');
-            const wakeDot = document.getElementById('wakeDot');
             const liveBanner = document.getElementById('liveBanner');
 
             // ---- State ----
             let isListening = false;
             let recognition = null;
-            let wakeWord = 'hey sri';
-            let wakeDetected = false;
-            let commandBuffer = '';
-            let commandTimeout = null;
             let isProcessing = false;
 
             // ---- UI helpers ----
@@ -4538,10 +4533,10 @@
                 micBtn.classList.toggle('listening', listening);
                 if (listening) {
                     micBtn.innerHTML = `<i class="fas fa-microphone"></i><span class="wake-indicator" style="background:#fa4b6e;"></span>`;
-                    setBanner('🎤 Listening for wake word...');
+                    setBanner('🎤 Listening... speak your command');
                 } else {
                     micBtn.innerHTML = `<i class="fas fa-microphone"></i><span class="wake-indicator"></span>`;
-                    setBanner('Voice assistant paused');
+                    setBanner('Voice assistant ready');
                 }
             }
 
@@ -4560,8 +4555,9 @@
             // ---- Command execution using exposed functions ----
             function executeCommand(commandText) {
                 const lower = commandText.toLowerCase().trim();
+                setBanner(`⏳ Processing: "${commandText}"`);
 
-                // ---- Helper to find channel by name ----
+                // Helper to find channel by name
                 function findChannel(name) {
                     const items = window.__darkranks.displayItems() || [];
                     for (let item of items) {
@@ -4570,7 +4566,6 @@
                     return null;
                 }
 
-                // ---- Helper to find movie by name ----
                 function findMovie(name) {
                     const movies = window.__darkranks.movieMaster || [];
                     for (let m of movies) {
@@ -4579,7 +4574,6 @@
                     return null;
                 }
 
-                // ---- Helper to find YouTube video by title ----
                 function findYoutubeVideo(title) {
                     const vids = window.__darkranks.YOUTUBE_VIDEOS || [];
                     for (let v of vids) {
@@ -4588,7 +4582,7 @@
                     return null;
                 }
 
-                // ---- 1. Open source ----
+                // 1. Open source
                 if (/(open|switch to|go to)\s+(tv|local|global|movies|youtube|yt hub)/i.test(lower)) {
                     const target = lower.match(/(tv|local|global|movies|youtube|yt hub)/i)[0].toLowerCase();
                     if (target === 'tv' || target === 'local') {
@@ -4618,13 +4612,13 @@
                     }
                 }
 
-                // ---- 2. Play channel ----
-                const playChannelMatch = lower.match(/play\s+(.+)/);
-                if (playChannelMatch) {
-                    const name = playChannelMatch[1].trim();
+                // 2. Play channel / movie / youtube video
+                const playMatch = lower.match(/play\s+(.+)/);
+                if (playMatch) {
+                    const name = playMatch[1].trim();
+                    // Try channel
                     const channel = findChannel(name);
                     if (channel) {
-                        // Get the index of this channel in displayItems
                         const items = window.__darkranks.displayItems();
                         const idx = items.indexOf(channel);
                         if (idx !== -1) {
@@ -4635,10 +4629,9 @@
                             return true;
                         }
                     }
-                    // If not found in current source, maybe it's a movie?
+                    // Try movie
                     const movie = findMovie(name);
                     if (movie) {
-                        // We need to switch to movies source first
                         window.__darkranks.setSource('movies');
                         setTimeout(() => {
                             const items = window.__darkranks.displayItems();
@@ -4652,7 +4645,7 @@
                         }, 500);
                         return true;
                     }
-                    // Maybe it's a YouTube video?
+                    // Try YouTube video
                     const ytVideo = findYoutubeVideo(name);
                     if (ytVideo) {
                         window.__darkranks.setSource('youtube');
@@ -4664,7 +4657,7 @@
                         }, 500);
                         return true;
                     }
-                    // If not found, try YouTube search
+                    // Fallback: YouTube search
                     if (name.length > 2) {
                         window.__darkranks.setSource('youtube');
                         setTimeout(() => {
@@ -4680,7 +4673,7 @@
                     return true;
                 }
 
-                // ---- 3. YouTube search ----
+                // 3. YouTube search
                 const ytSearch = lower.match(/(search youtube|youtube search)\s+(.+)/);
                 if (ytSearch) {
                     const query = ytSearch[2].trim();
@@ -4694,7 +4687,7 @@
                     return true;
                 }
 
-                // ---- 4. Add to favorites ----
+                // 4. Add to favorites
                 if (/\b(add to favorites|favorite|star this)\b/.test(lower)) {
                     const favBtn = document.getElementById('favBtn');
                     if (favBtn) {
@@ -4709,7 +4702,7 @@
                     return true;
                 }
 
-                // ---- 5. Continue watching ----
+                // 5. Continue watching
                 if (/\b(continue watching|resume|continue)\b/.test(lower)) {
                     const continueRow = document.querySelector('.continue-watching .movie-card');
                     if (continueRow) {
@@ -4718,7 +4711,6 @@
                         speak(msg);
                         setBanner('▶️ ' + msg);
                     } else {
-                        // Try to play last watched channel from recent
                         const recent = JSON.parse(localStorage.getItem('recently_watched_channels') || '[]');
                         if (recent.length > 0) {
                             const ch = recent[0];
@@ -4741,7 +4733,7 @@
                     return true;
                 }
 
-                // ---- 6. Scroll ----
+                // 6. Scroll
                 if (/\b(scroll|move)\s+(up|down)\b/.test(lower)) {
                     const dir = /down/.test(lower) ? 'down' : 'up';
                     const amount = dir === 'down' ? 500 : -500;
@@ -4752,7 +4744,7 @@
                     return true;
                 }
 
-                // ---- 7. Go home ----
+                // 7. Go home
                 if (/\b(go home|home page|take me home|scroll to top)\b/.test(lower)) {
                     window.scrollTo({ top: 0, behavior: 'smooth' });
                     const msg = 'Going home.';
@@ -4761,7 +4753,7 @@
                     return true;
                 }
 
-                // ---- 8. Open settings / profile ----
+                // 8. Open settings / profile
                 if (/\b(settings|preferences)\b/.test(lower)) {
                     document.getElementById('settingsBtn').click();
                     const msg = 'Opening settings.';
@@ -4777,7 +4769,7 @@
                     return true;
                 }
 
-                // ---- 9. Theme ----
+                // 9. Theme
                 if (/\b(dark mode|night mode|light mode)\b/.test(lower)) {
                     const mode = /dark|night/.test(lower) ? 'dark' : 'light';
                     document.body.style.background = mode === 'dark' ? '#0b0e1a' : '#f0f0f0';
@@ -4787,7 +4779,7 @@
                     return true;
                 }
 
-                // ---- 10. Volume ----
+                // 10. Volume
                 const volMatch = lower.match(/volume\s+(up|down|mute|unmute|(\d+))/);
                 if (volMatch) {
                     const videoEl = document.getElementById('video');
@@ -4807,7 +4799,7 @@
                     return true;
                 }
 
-                // ---- 11. Time ----
+                // 11. Time
                 if (/\b(time|clock|what'?s the time)\b/.test(lower)) {
                     const now = new Date();
                     const t = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
@@ -4817,16 +4809,14 @@
                     return true;
                 }
 
-                // ---- 12. General question → ask Gemini (optional) ----
-                // We could integrate Gemini API, but for now, we'll fallback to a generic response
-                // For advanced Q&A, you can add the Gemini call from the previous version.
-                // For simplicity, we'll just acknowledge.
+                // 12. General question – fallback to Gemini (optional)
+                // We can add a simple generic answer
                 speak('I understood your request, but I need more specific instructions.');
                 setBanner('🤖 Please give a specific command.');
                 return true;
             }
 
-            // ---- Speech recognition ----
+            // ---- Speech recognition (single-shot) ----
             function initSpeech() {
                 const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
                 if (!SR) {
@@ -4836,14 +4826,13 @@
 
                 const rec = new SR();
                 rec.lang = 'en-US';
-                rec.continuous = true;
+                rec.continuous = false;
                 rec.interimResults = true;
                 rec.maxAlternatives = 1;
 
                 rec.onstart = function() {
                     isListening = true;
                     updateMicUI(true);
-                    setBanner('🎤 Listening for wake word...');
                 };
 
                 rec.onerror = function(event) {
@@ -4851,97 +4840,69 @@
                     if (event.error === 'not-allowed') {
                         setBanner('❌ Microphone access denied', true);
                         speak('Please allow microphone access.');
-                        updateMicUI(false);
-                        isListening = false;
                     } else if (event.error === 'no-speech') {
                         setBanner('No speech detected', true);
+                        speak('I didn\'t hear anything.');
+                    } else {
+                        setBanner('Error: ' + event.error, true);
                     }
+                    isListening = false;
+                    updateMicUI(false);
                 };
 
                 rec.onend = function() {
-                    if (isListening) {
-                        // Restart automatically
-                        try { rec.start(); } catch (_) {}
-                    }
+                    isListening = false;
+                    updateMicUI(false);
                 };
 
                 rec.onresult = function(event) {
                     let finalText = '';
-                    let interimText = '';
                     for (let i = event.resultIndex; i < event.results.length; i++) {
                         const res = event.results[i];
-                        const transcript = res[0].transcript.trim();
-                        if (res.isFinal) finalText = transcript;
-                        else interimText = transcript;
+                        if (res.isFinal) {
+                            finalText = res[0].transcript.trim();
+                            break;
+                        }
                     }
-
-                    const text = finalText || interimText;
-                    if (!text) return;
-
-                    const lower = text.toLowerCase();
-
-                    // Check for wake word
-                    if (lower.includes(wakeWord)) {
-                        wakeDetected = true;
-                        commandBuffer = '';
-                        setBanner('🔊 Wake word detected! Listening for command...');
-                        speak('Yes?');
-                        // Clear any previous timeout
-                        if (commandTimeout) clearTimeout(commandTimeout);
-                        return;
-                    }
-
-                    // If wake detected, accumulate command
-                    if (wakeDetected) {
-                        commandBuffer += ' ' + text;
-                        // Reset timeout
-                        if (commandTimeout) clearTimeout(commandTimeout);
-                        commandTimeout = setTimeout(() => {
-                            // Process the command
-                            if (commandBuffer.trim().length > 0) {
-                                const cmd = commandBuffer.trim();
-                                setBanner('⏳ Processing command...');
-                                executeCommand(cmd);
-                                wakeDetected = false;
-                                commandBuffer = '';
-                                setBanner('✅ Command executed');
-                            } else {
-                                wakeDetected = false;
-                                setBanner('No command heard');
-                            }
-                            commandTimeout = null;
-                        }, 2000); // Wait 2 seconds of silence before processing
+                    if (finalText) {
+                        setBanner(`🗣️ You said: "${finalText}"`);
+                        // Execute command
+                        isProcessing = true;
+                        executeCommand(finalText);
+                        isProcessing = false;
+                        // Stop listening after command
+                        try { rec.stop(); } catch (_) {}
                     }
                 };
 
                 return rec;
             }
 
-            // ---- Toggle mic ----
+            // ---- Toggle mic (push-to-talk) ----
             function toggleMic() {
-                if (isListening) {
-                    // Stop
+                if (isListening || isProcessing) {
+                    // If listening, stop
                     if (recognition) {
                         try { recognition.stop(); } catch (_) {}
                     }
                     isListening = false;
                     updateMicUI(false);
-                    setBanner('Voice assistant paused');
-                } else {
-                    if (!recognition) {
-                        recognition = initSpeech();
-                        if (!recognition) return;
-                    }
-                    try {
-                        recognition.start();
-                    } catch (e) {
-                        console.warn(e);
-                        if (e.message.includes('already started')) {
-                            try { recognition.abort(); } catch (_) {}
-                            setTimeout(() => { try { recognition.start(); } catch (_) {} }, 300);
-                        } else {
-                            alert('Could not start microphone. Please try again.');
-                        }
+                    return;
+                }
+
+                if (!recognition) {
+                    recognition = initSpeech();
+                    if (!recognition) return;
+                }
+                try {
+                    recognition.start();
+                } catch (e) {
+                    console.warn(e);
+                    if (e.message.includes('already started')) {
+                        try { recognition.abort(); } catch (_) {}
+                        setTimeout(() => { try { recognition.start(); } catch (_) {} }, 300);
+                    } else {
+                        alert('Could not start microphone. Please try again.');
                     }
                 }
             }
@@ -4957,19 +4918,7 @@
                 }
             });
 
-            // ---- Set wake word from console ----
-            window.setWakeWord = function(word) {
-                if (word && typeof word === 'string' && word.trim().length > 0) {
-                    wakeWord = word.trim().toLowerCase();
-                    speak(`Wake word set to "${wakeWord}".`);
-                    setBanner(`🔊 Wake word: "${wakeWord}"`);
-                }
-            };
-
-            // Start listening by default? We'll let user click mic.
-            // But we can auto-start if desired. For now, user must click.
-
-            console.log('[Voice AI] Ready. Click the mic or press Ctrl+Shift+A. Wake word: "hey sri"');
+            console.log('[Voice AI] Push-to-talk ready. Click the mic or press Ctrl+Shift+A.');
         })();
     </script>
 
